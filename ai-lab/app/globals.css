@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@300;400;600&display=swap');
+
+:root {
+  --font-noto-sans: 'Noto Sans SC', sans-serif;
+  --font-noto-serif: 'Noto Serif SC', serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background-color: #FFF8F0;
+  color: #1C1917;
+  font-family: var(--font-noto-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #E7E2DC; border-radius: 99px; }
+
+/* 文件拖拽区域 */
+.dropzone-active {
+  border-color: #A8D8A8 !important;
+  background-color: #f0faf0 !important;
+}
