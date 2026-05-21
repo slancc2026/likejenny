@@ -42,16 +42,23 @@ export async function POST(req: NextRequest) {
 
     // 调用 AI
     const prompt = enhancePrompt(cuisineType)
-    const b64 = await editImage({ imageBase64, imageMediaType, prompt, quality: 'medium' })
+    const result = await editImage({ imageBase64, imageMediaType, prompt, quality: 'medium' })
 
-    // 上传图片
-    const filePath = `${user.id}/enhance/${task.id}/0.jpg`
-    const bytes = Buffer.from(b64, 'base64')
-    await supabase.storage.from('generated-images').upload(filePath, bytes, { contentType: 'image/jpeg', upsert: true })
-    const { data: urlData } = supabase.storage.from('generated-images').getPublicUrl(filePath)
+    let finalUrl: string
+    if (result.startsWith('http')) {
+      // 方舟直接返回了 URL
+      finalUrl = result
+    } else {
+      // 返回了 base64，上传到 Storage
+      const filePath = `${user.id}/enhance/${task.id}/0.jpg`
+      const bytes = Buffer.from(result, 'base64')
+      await supabase.storage.from('generated-images').upload(filePath, bytes, { contentType: 'image/jpeg', upsert: true })
+      const { data: urlData } = supabase.storage.from('generated-images').getPublicUrl(filePath)
+      finalUrl = urlData.publicUrl
+    }
 
-    await supabase.from('tasks').update({ status: 'done', output_urls: [urlData.publicUrl], progress: 100 }).eq('id', task.id)
-    return NextResponse.json({ taskId: task.id, url: urlData.publicUrl })
+    await supabase.from('tasks').update({ status: 'done', output_urls: [finalUrl], progress: 100 }).eq('id', task.id)
+    return NextResponse.json({ taskId: task.id, url: finalUrl })
 
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : '生成失败'

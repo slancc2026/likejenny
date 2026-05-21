@@ -75,8 +75,7 @@ export async function editImage(opts: EditImageOptions): Promise<string> {
   formData.append('prompt', prompt)
   formData.append('size', size)
   formData.append('quality', quality)
-  formData.append('response_format', 'b64_json')
-  // ⚠️ 不传 negative_prompt
+  // ⚠️ 不传 negative_prompt，不传 response_format
 
   const res = await fetch(`${FANGZHOU_BASE_URL}/images/edits`, {
     method: 'POST',
@@ -90,6 +89,8 @@ export async function editImage(opts: EditImageOptions): Promise<string> {
   }
 
   const data = await res.json()
+  // 兼容返回 url 或 b64_json
+  if (data.data?.[0]?.url) return data.data[0].url
   return data.data[0].b64_json
 }
 

@@ -24,17 +24,16 @@ export async function POST(req: NextRequest) {
     let b64: string
 
     if (imageBase64) {
-      // 图生图：调用 /images/edits，不传 negative_prompt
+      // 图生图：调用 /images/edits，不传 negative_prompt，不传 response_format
       const byteString = Buffer.from(imageBase64, 'base64')
       const blob = new Blob([byteString], { type: imageMediaType || 'image/jpeg' })
       const formData = new FormData()
       formData.append('image', blob, 'image.jpg')
       formData.append('model', model)
       formData.append('prompt', prompt)
-      formData.append('size', '1024x1024') // edits 只支持 1024x1024
+      formData.append('size', '1024x1024')
       formData.append('quality', 'medium')
-      formData.append('response_format', 'b64_json')
-      // ⚠️ 不传 negative_prompt
+      // ⚠️ 不传 negative_prompt，不传 response_format
 
       const res = await fetch(`${BASE_URL}/images/edits`, {
         method: 'POST',
@@ -46,6 +45,10 @@ export async function POST(req: NextRequest) {
         throw new Error(`图生图失败: ${res.status} ${err}`)
       }
       const data = await res.json()
+      // 兼容返回 url 或 b64_json
+      if (data.data?.[0]?.url) {
+        return NextResponse.json({ url: data.data[0].url })
+      }
       b64 = data.data?.[0]?.b64_json
     } else {
       // 文生图：调用 /images/generations
