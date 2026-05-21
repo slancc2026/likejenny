@@ -14,37 +14,54 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await adminSupabase.auth.getUser(token)
   if (!user) return NextResponse.json({ error: '未登录' }, { status: 401 })
 
-  const { prompt, size = '1024x1024' } = await req.json()
+  const { prompt, size = '1024x1024', model = 'gpt-image-2', imageBase64, imageMediaType } = await req.json()
   if (!prompt) return NextResponse.json({ error: '缺少描述词' }, { status: 400 })
 
   const BASE_URL = process.env.FANGZHOU_BASE_URL || 'https://api.aiyungc.cn/v1'
   const API_KEY = process.env.FANGZHOU_API_KEY!
-  const MODEL = process.env.FANGZHOU_IMAGE_MODEL || 'gpt-image-2'
 
   try {
-    const res = await fetch(`${BASE_URL}/images/generations`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        prompt,
-        size,
-        quality: 'medium',
-        n: 1,
-        response_format: 'b64_json',
-      }),
-    })
+    let b64: string
 
-    if (!res.ok) {
-      const err = await res.text()
-      throw new Error(`生图失败: ${res.status} ${err}`)
+    if (imageBase64) {
+      // 图生图：调用 /images/edits，不传 negative_prompt
+      const byteString = Buffer.from(imageBase64, 'base64')
+      const blob = new Blob([byteString], { type: imageMediaType || 'image/jpeg' })
+      const formData = new FormData()
+      formData.append('image', blob, 'image.jpg')
+      formData.append('model', model)
+      formData.append('prompt', prompt)
+      formData.append('size', '1024x1024') // edits 只支持 1024x1024
+      formData.append('quality', 'medium')
+      formData.append('response_format', 'b64_json')
+      // ⚠️ 不传 negative_prompt
+
+      const res = await fetch(`${BASE_URL}/images/edits`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${API_KEY}` },
+        body: formData,
+      })
+      if (!res.ok) {
+        const err = await res.text()
+        throw new Error(`图生图失败: ${res.status} ${err}`)
+      }
+      const data = await res.json()
+      b64 = data.data?.[0]?.b64_json
+    } else {
+      // 文生图：调用 /images/generations
+      const res = await fetch(`${BASE_URL}/images/generations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}` },
+        body: JSON.stringify({ model, prompt, size, quality: 'medium', n: 1, response_format: 'b64_json' }),
+      })
+      if (!res.ok) {
+        const err = await res.text()
+        throw new Error(`文生图失败: ${res.status} ${err}`)
+      }
+      const data = await res.json()
+      b64 = data.data?.[0]?.b64_json
     }
 
-    const data = await res.json()
-    const b64 = data.data?.[0]?.b64_json
     if (!b64) throw new Error('未获取到图片数据')
 
     // 上传到 Supabase Storage
@@ -54,7 +71,6 @@ export async function POST(req: NextRequest) {
       contentType: 'image/jpeg', upsert: true
     })
     const { data: urlData } = adminSupabase.storage.from('generated-images').getPublicUrl(filePath)
-
     return NextResponse.json({ url: urlData.publicUrl })
 
   } catch (err: unknown) {
