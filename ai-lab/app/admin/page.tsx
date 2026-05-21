@@ -69,23 +69,12 @@ export default function AdminPage() {
     setLoading(true)
     const supabase = getAdminClient()
     try {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, credits, total_used, created_at')
-        .order('created_at', { ascending: false })
+      // 获取用户列表（含邮箱）
+      const res = await fetch('/api/admin/users')
+      const data = await res.json()
+      if (data.users) setUsers(data.users)
 
-      // 从 auth.users 获取邮箱需要 service role，这里用 profiles + session
-      const { data: { session } } = await supabase.auth.getSession()
-
-      const usersWithEmail: User[] = (profiles || []).map((p: { id: string; credits: number; total_used: number; created_at: string }) => ({
-        id: p.id,
-        email: p.id === session?.user?.id ? session.user.email ?? '' : p.id.slice(0, 8) + '...',
-        created_at: p.created_at,
-        credits: p.credits,
-        total_used: p.total_used,
-      }))
-      setUsers(usersWithEmail)
-
+      // 获取任务列表
       const { data: taskData } = await supabase
         .from('tasks')
         .select('id, user_id, task_type, status, credits_cost, created_at, output_urls')
