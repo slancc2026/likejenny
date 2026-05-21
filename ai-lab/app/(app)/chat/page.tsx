@@ -275,10 +275,10 @@ export default function ChatPage() {
                 : '纯文字描述 → 文生图；上传图片+描述 → 图生图精修'}
             </p>
             <div className="mt-6 grid grid-cols-2 gap-2 max-w-md">
-              {mode === 'text'
+              {(mode === 'text'
                 ? ['帮我写一条朋友圈文案，推广牛油果沙拉', '给莱珂珍妮写一个品牌故事', '分析一下轻食餐饮的目标人群', '帮我想5个吸引大学生的营销活动']
                 : ['清新轻食沙拉，白色大理石背景，自然光', '莱珂珍妮品牌海报，绿色清新风格', '牛油果沙拉俯拍，Instagram风格', '健康轻食餐厅室内场景，ins风']
-              }.map(s => (
+              ).map(s => (
                 <button key={s} onClick={() => setInput(s)}
                   className="text-left text-xs text-brand-muted border border-brand-border rounded-xl px-3 py-2 hover:border-brand-green hover:text-brand-green-dark transition-colors">
                   {s}
