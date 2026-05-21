@@ -3,7 +3,7 @@ import { TASK_LABELS, TaskType } from '@/types'
 import { Download } from 'lucide-react'
 
 export default async function AssetsPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data: tasks } = await supabase

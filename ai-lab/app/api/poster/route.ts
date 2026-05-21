@@ -14,7 +14,7 @@ const SIZE_MAP: Record<string, '1024x1024' | '1024x1365' | '1024x1820'> = {
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: '未登录' }, { status: 401 })
 

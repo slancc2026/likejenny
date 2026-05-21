@@ -7,7 +7,7 @@ export async function deductCredits(
   taskType: TaskType,
   taskId: string
 ): Promise<number> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const cost = CREDITS_COST[taskType]
 
   // 用事务方式：先读再写（Supabase 用 RPC 或乐观锁）
@@ -45,7 +45,7 @@ export async function deductCredits(
 
 /** 发放每日登录积分（每天最多一次） */
 export async function claimDailyCredit(userId: string): Promise<boolean> {
-  const supabase = createClient()
+  const supabase = await createClient()
   const today = new Date().toISOString().split('T')[0]
 
   const { data: profile } = await supabase

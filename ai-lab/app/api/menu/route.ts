@@ -7,7 +7,7 @@ import { deductCredits } from '@/lib/credits'
 import { LKJ_DEFAULT_BRAND } from '@/types'
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: '未登录' }, { status: 401 })
 

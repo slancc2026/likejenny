@@ -9,7 +9,7 @@ export async function uploadGeneratedImage(
   base64: string,
   index: number = 0
 ): Promise<string> {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const byteString = Buffer.from(base64, 'base64')
   const filePath = `${userId}/${taskType}/${taskId}/${index}.jpg`
