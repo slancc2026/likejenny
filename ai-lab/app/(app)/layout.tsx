@@ -39,7 +39,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="h-14 border-b border-brand-border bg-white px-6 flex items-center justify-between flex-shrink-0">
-          <div />
+          <div className="lg:hidden w-9" />{/* 手机端占位，给汉堡按钮留空间 */}
+          <div className="hidden lg:block" />
           <div className="flex items-center gap-3">
             <Link href="/credits" className="flex items-center gap-1.5 bg-brand-bg border border-brand-border rounded-full px-3 py-1.5 hover:border-brand-green transition-colors">
               <Zap className="w-3.5 h-3.5 text-brand-orange" />
