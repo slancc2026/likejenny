@@ -1,7 +1,39 @@
+'use client'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import { Sidebar } from '@/components/layout/sidebar'
-import { CreditsBadge } from '@/components/ui/credits-badge'
+import Link from 'next/link'
+import { Zap } from 'lucide-react'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const [credits, setCredits] = useState<number | null>(null)
+  const [email, setEmail] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session) {
+        router.push('/login')
+        return
+      }
+      const user = data.session.user
+      setEmail(user.email ?? '')
+      const { data: profile } = await supabase
+        .from('profiles').select('credits').eq('id', user.id).single()
+      setCredits(profile?.credits ?? 0)
+      setLoading(false)
+    })
+  }, [router])
+
+  if (loading) return (
+    <div className="flex h-screen items-center justify-center bg-brand-bg">
+      <div className="text-brand-muted text-sm">加载中…</div>
+    </div>
+  )
+
   return (
     <div className="flex h-screen overflow-hidden bg-brand-bg">
       <Sidebar />
@@ -9,7 +41,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="h-14 border-b border-brand-border bg-white px-6 flex items-center justify-between flex-shrink-0">
           <div />
           <div className="flex items-center gap-3">
-            <CreditsBadge credits={0} />
+            <Link href="/credits" className="flex items-center gap-1.5 bg-brand-bg border border-brand-border rounded-full px-3 py-1.5 hover:border-brand-green transition-colors">
+              <Zap className="w-3.5 h-3.5 text-brand-orange" />
+              <span className="text-sm font-medium text-brand-text">{credits ?? 0}</span>
+              <span className="text-xs text-brand-muted">积分</span>
+            </Link>
+            <div className="w-8 h-8 rounded-full bg-brand-green flex items-center justify-center text-white text-sm font-medium">
+              {email?.[0]?.toUpperCase() ?? 'U'}
+            </div>
           </div>
         </header>
         <main className="flex-1 overflow-y-auto">
