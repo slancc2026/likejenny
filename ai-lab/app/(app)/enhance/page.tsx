@@ -28,11 +28,31 @@ export default function EnhancePage() {
 
   function handleFile(f: File) {
     if (!f.type.startsWith('image/')) { toast.error('请上传图片文件'); return }
-    if (f.size > 10 * 1024 * 1024) { toast.error('图片不能超过10MB'); return }
+    if (f.size > 20 * 1024 * 1024) { toast.error('图片不能超过20MB'); return }
     setFile(f); setResult(null)
-    const reader = new FileReader()
-    reader.onload = e => setPreview(e.target?.result as string)
-    reader.readAsDataURL(f)
+
+    // 压缩到 1024px 以内
+    const img = document.createElement('img')
+    const url = URL.createObjectURL(f)
+    img.onload = () => {
+      const MAX = 1024
+      let { width, height } = img
+      if (width > MAX || height > MAX) {
+        if (width > height) { height = Math.round(height * MAX / width); width = MAX }
+        else { width = Math.round(width * MAX / height); height = MAX }
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width; canvas.height = height
+      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
+      canvas.toBlob(blob => {
+        if (!blob) return
+        const reader = new FileReader()
+        reader.onload = e => setPreview(e.target?.result as string)
+        reader.readAsDataURL(blob)
+      }, 'image/jpeg', 0.85)
+      URL.revokeObjectURL(url)
+    }
+    img.src = url
   }
 
   const onDrop = useCallback((e: React.DragEvent) => {

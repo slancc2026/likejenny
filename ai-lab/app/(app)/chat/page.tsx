@@ -79,14 +79,35 @@ export default function ChatPage() {
 
   function handleFile(file: File) {
     if (!file.type.startsWith('image/')) { toast.error('请上传图片文件'); return }
-    if (file.size > 10 * 1024 * 1024) { toast.error('图片不能超过10MB'); return }
-    const reader = new FileReader()
-    reader.onload = e => {
-      const dataUrl = e.target?.result as string
-      const base64 = dataUrl.split(',')[1]
-      setUploadedImage({ file, preview: dataUrl, base64 })
+    if (file.size > 20 * 1024 * 1024) { toast.error('图片不能超过20MB'); return }
+
+    // 压缩图片到 1024px 以内再转 base64
+    const img = document.createElement('img')
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const MAX = 1024
+      let { width, height } = img
+      if (width > MAX || height > MAX) {
+        if (width > height) { height = Math.round(height * MAX / width); width = MAX }
+        else { width = Math.round(width * MAX / height); height = MAX }
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width; canvas.height = height
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(img, 0, 0, width, height)
+      canvas.toBlob(blob => {
+        if (!blob) return
+        const reader = new FileReader()
+        reader.onload = e => {
+          const dataUrl = e.target?.result as string
+          const base64 = dataUrl.split(',')[1]
+          setUploadedImage({ file, preview: dataUrl, base64 })
+        }
+        reader.readAsDataURL(blob)
+      }, 'image/jpeg', 0.85)
+      URL.revokeObjectURL(url)
     }
-    reader.readAsDataURL(file)
+    img.src = url
   }
 
   const onDrop = useCallback((e: React.DragEvent) => {
