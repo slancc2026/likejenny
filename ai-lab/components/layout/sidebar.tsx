@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation'
 import { clsx } from 'clsx'
 import {
   Sparkles, ImageIcon, FileText, Layers, Package, Zap,
-  FolderOpen, CreditCard, LayoutDashboard, LogOut
+  FolderOpen, CreditCard, LayoutDashboard, LogOut, MessageSquare
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation'
 const NAV_ITEMS = [
   { href: '/dashboard', label: '工作台', icon: LayoutDashboard },
   { label: '─── 创作工具', type: 'separator' },
+  { href: '/chat', label: 'AI 对话', icon: MessageSquare },
   { href: '/enhance', label: '菜品精修', icon: ImageIcon, cost: 4 },
   { href: '/poster', label: '宣传海报', icon: FileText, cost: 5 },
   { href: '/menu', label: '菜单设计', icon: Layers, cost: 8 },
