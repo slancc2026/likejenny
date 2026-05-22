@@ -103,7 +103,7 @@ export default function LoginPage() {
 
         <div className="relative">
           <div className="flex items-center gap-6 text-sm text-white/50">
-            <span>© 2025 河南盛塬宏品牌管理有限责任公司</span>
+            <span>© 2026 河南盛塬宏品牌管理有限责任公司</span>
           </div>
         </div>
       </div>

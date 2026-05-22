@@ -20,7 +20,7 @@ export default async function Home() {
           进入工作台 →
         </Link>
         <p className="mt-6 text-xs text-brand-muted">
-          © 2025 河南盛塬宏品牌管理有限责任公司
+          © 2026 河南盛塬宏品牌管理有限责任公司
         </p>
       </div>
     </main>

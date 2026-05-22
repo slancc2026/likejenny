@@ -12,7 +12,7 @@ function getAdminClient() {
   )
 }
 
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'lkj-admin-2025'
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'lkj-admin-2026'
 
 interface User {
   id: string
