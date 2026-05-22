@@ -21,25 +21,33 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       }
       const user = data.session.user
       setEmail(user.email ?? '')
+
       const { data: profile } = await supabase
-        .from('profiles').select('credits').eq('id', user.id).single()
-  // 尝试发放每日签到积分（静默）
-    if (profile) {
-      const today = new Date().toISOString().split('T')[0]
-      if (profile.last_daily_credit !== today) {
-        // 每日签到 +1 积分
-        const newCredits = (profile.credits ?? 0) + 1
-        supabase.from('profiles').update({ credits: newCredits, last_daily_credit: today }).eq('id', userId).then(() => {
-          supabase.from('credit_logs').insert({
-            user_id: userId, amount: 1, balance: newCredits,
-            type: 'daily', description: '每日签到奖励'
-          }).then(() => {})
-        })
-        setCredits(newCredits)
-      } else {
-        setCredits(profile?.credits ?? 0)
+        .from('profiles')
+        .select('credits, last_daily_credit')
+        .eq('id', user.id)
+        .single()
+
+      if (profile) {
+        const today = new Date().toISOString().split('T')[0]
+        if (profile.last_daily_credit !== today) {
+          // 每日签到 +1 积分
+          const newCredits = (profile.credits ?? 0) + 1
+          supabase.from('profiles')
+            .update({ credits: newCredits, last_daily_credit: today })
+            .eq('id', user.id)
+            .then(() => {
+              supabase.from('credit_logs').insert({
+                user_id: user.id, amount: 1, balance: newCredits,
+                type: 'daily', description: '每日签到奖励'
+              }).then(() => {})
+            })
+          setCredits(newCredits)
+        } else {
+          setCredits(profile.credits ?? 0)
+        }
       }
-    }
+
       setLoading(false)
     })
   }, [router])
@@ -55,7 +63,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="h-14 border-b border-brand-border bg-white px-6 flex items-center justify-between flex-shrink-0">
-          <div className="lg:hidden w-9" />{/* 手机端占位，给汉堡按钮留空间 */}
+          <div className="lg:hidden w-9" />
           <div className="hidden lg:block" />
           <div className="flex items-center gap-3">
             <Link href="/credits" className="flex items-center gap-1.5 bg-brand-bg border border-brand-border rounded-full px-3 py-1.5 hover:border-brand-green transition-colors">
