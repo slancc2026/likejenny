@@ -181,7 +181,7 @@ export default function EnhancePage() {
   }
 
   return (
-    <div className="p-8 max-w-4xl">
+    <div className="p-4 md:p-8 max-w-4xl">
       <div className="mb-6">
         <h1 className="text-2xl font-medium text-brand-text mb-1">菜品精修</h1>
         <p className="text-brand-muted text-sm">上传菜品原图，AI 自动提升质感 · 消耗 4 积分</p>
@@ -261,7 +261,7 @@ export default function EnhancePage() {
         </Card>
       </div>
 
-      <div className="mt-6 grid grid-cols-3 gap-3">
+      <div className="mt-5 md:mt-6 grid grid-cols-3 gap-3">
         {[
           { emoji: '💡', title: '光线优化', desc: '自动补光，模拟专业摄影棚效果' },
           { emoji: '🎨', title: '色彩增强', desc: '提升饱和度，让菜品更鲜艳诱人' },

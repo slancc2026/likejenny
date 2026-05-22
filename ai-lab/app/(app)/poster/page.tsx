@@ -97,12 +97,12 @@ export default function PosterPage() {
   }
 
   return (
-    <div className="p-7 max-w-4xl">
+    <div className="p-4 md:p-7 max-w-4xl">
       <div className="mb-6">
         <h1 className="font-display text-4xl tracking-wide mb-1">宣传海报</h1>
         <p className="text-gray-400 text-sm">AI 生成专业宣传海报 · 消耗 5 积分</p>
       </div>
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
         <div className="space-y-4">
           {/* 类型 */}
           <div className="border-[2px] border-brand-black">

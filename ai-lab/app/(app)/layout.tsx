@@ -59,17 +59,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar credits={credits} email={email} checkedIn={checkedIn} />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* 顶部栏 */}
-        <header className="h-12 border-b-[2px] border-brand-black bg-brand-white px-6 flex items-center justify-between flex-shrink-0">
+        <header className="h-12 border-b-[2px] border-brand-black bg-brand-white px-4 md:px-6 flex items-center justify-between flex-shrink-0">
           <div className="lg:hidden w-10" />
           <div className="hidden lg:flex items-center gap-2 font-mono text-xs text-gray-400 tracking-wider">
             <span>AI-LAB</span>
             <span>/</span>
             <span className="text-brand-black font-bold">WORKSPACE</span>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 border-[2px] border-brand-black px-3 py-1">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="flex items-center gap-1.5 border-[2px] border-brand-black px-2 md:px-3 py-1">
               <div className="w-1.5 h-1.5 bg-brand-green rounded-full animate-pulse" />
-              <span className="text-[10px] font-bold tracking-wider">系统正常</span>
+              <span className="text-[10px] font-bold tracking-wider hidden sm:block">系统正常</span>
+              <span className="text-[10px] font-bold sm:hidden">●</span>
             </div>
           </div>
         </header>

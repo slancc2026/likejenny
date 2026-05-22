@@ -775,6 +775,110 @@ footer {
 .reveal-delay-1 { transition-delay: 0.1s; }
 .reveal-delay-2 { transition-delay: 0.2s; }
 .reveal-delay-3 { transition-delay: 0.3s; }
+
+/* ── 手机端响应式 ── */
+@media (max-width: 768px) {
+  /* 导航 */
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+
+  /* 汉堡菜单 */
+  .nav-hamburger {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 8px;
+  }
+  .nav-hamburger span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: rgba(255,255,255,0.6);
+    transition: all 0.2s;
+  }
+
+  /* 手机导航抽屉 */
+  .nav-mobile {
+    position: fixed;
+    top: 56px; left: 0; right: 0;
+    background: var(--black);
+    border-bottom: 2px solid #333;
+    z-index: 99;
+    transform: translateY(-110%);
+    transition: transform 0.3s ease;
+  }
+  .nav-mobile.open { transform: translateY(0); }
+  .nav-mobile a {
+    display: block;
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    letter-spacing: 0.08em;
+  }
+  .nav-mobile a:last-child { background: var(--green); color: var(--black); }
+
+  /* Hero */
+  #hero { padding: 80px 20px 48px; min-height: auto; }
+  .hero-inner { grid-template-columns: 1fr; gap: 32px; }
+  .hero-title { font-size: 52px; }
+  .hero-subtitle { font-size: 18px; }
+  .hero-desc { font-size: 13px; }
+  .hero-actions { flex-direction: column; gap: 0; }
+  .btn-primary, .btn-secondary { text-align: center; justify-content: center; padding: 14px 24px; }
+  .hero-stats { flex-direction: row; border-color: rgba(255,255,255,0.1); }
+  .hero-stat { padding: 14px 12px; flex: 1; }
+  .hero-stat-num { font-size: 32px; }
+  .hero-deco { display: none; }
+  .scroll-hint { display: none; }
+
+  /* 品牌矩阵 */
+  #brands { padding: 48px 20px; }
+  .section-header { flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 24px; }
+  .section-line { display: none; }
+  .brands-grid { grid-template-columns: 1fr; }
+  .brand-card { border-right: none; border-bottom: var(--border); min-height: auto; padding: 32px 24px; }
+  .brand-card:last-child { border-bottom: none; }
+  .brand-name { font-size: 36px; }
+  .brand-deco-text { font-size: 100px; }
+
+  /* AI 实验室 */
+  #ai-lab { padding: 48px 20px; }
+  .ai-lab-top { grid-template-columns: 1fr; }
+  .ai-lab-headline { border-right: none; border-bottom: 2px solid rgba(255,255,255,0.1); padding: 28px 20px; }
+  .ai-features { padding: 20px; gap: 0; }
+  .ai-title { font-size: 40px; }
+  .ai-showcase { grid-template-columns: 1fr; }
+  .showcase-card { border-right: none; border-bottom: 2px solid rgba(255,255,255,0.1); aspect-ratio: 4/3; }
+  .showcase-card:last-child { border-bottom: none; }
+
+  /* 关于 */
+  #about { padding: 48px 20px; }
+  .about-inner { grid-template-columns: 1fr; }
+  .about-left { border-right: none; border-bottom: var(--border); padding: 28px 20px; }
+  .about-right { grid-template-columns: 1fr 1fr; }
+  .stat-block { padding: 20px 16px; }
+  .stat-num { font-size: 40px; }
+
+  /* 联系 */
+  #contact { padding: 48px 20px; }
+  .contact-grid { grid-template-columns: 1fr; }
+  .contact-left { border-right: none; border-bottom: 2px solid rgba(255,255,255,0.1); padding: 28px 20px; }
+  .contact-right { padding: 28px 20px; }
+  .contact-right-title { font-size: 32px; }
+
+  /* Footer */
+  footer { padding: 20px; }
+  .footer-inner { flex-direction: column; gap: 8px; text-align: center; }
+}
+
+@media (min-width: 769px) {
+  .nav-hamburger { display: none; }
+  .nav-mobile { display: none !important; }
+}
 </style>
 </head>
 <body>
@@ -789,7 +893,18 @@ footer {
     <li><a href="#contact">联系我们</a></li>
     <li><a href="https://ai.shengyuanhong.cn" class="nav-cta">进入 AI 实验室 →</a></li>
   </ul>
+  <div class="nav-hamburger" onclick="toggleMobileNav()" id="hamburger">
+    <span></span><span></span><span></span>
+  </div>
 </nav>
+
+<div class="nav-mobile" id="mobile-nav">
+  <a href="#brands" onclick="closeMobileNav()">品牌矩阵</a>
+  <a href="#ai-lab" onclick="closeMobileNav()">AI 实验室</a>
+  <a href="#about" onclick="closeMobileNav()">关于我们</a>
+  <a href="#contact" onclick="closeMobileNav()">联系我们</a>
+  <a href="https://ai.shengyuanhong.cn">进入 AI 实验室 →</a>
+</div>
 
 <!-- Hero -->
 <section id="hero">
@@ -1025,6 +1140,23 @@ const reveals = document.querySelectorAll('.reveal')
 const observer = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') })
 }, { threshold: 0.1 })
+reveals.forEach(el => observer.observe(el))
+
+// 汉堡菜单
+function toggleMobileNav() {
+  document.getElementById('mobile-nav').classList.toggle('open')
+}
+function closeMobileNav() {
+  document.getElementById('mobile-nav').classList.remove('open')
+}
+// 点击菜单外区域关闭
+document.addEventListener('click', e => {
+  const nav = document.getElementById('mobile-nav')
+  const btn = document.getElementById('hamburger')
+  if (!nav.contains(e.target) && !btn.contains(e.target)) {
+    nav.classList.remove('open')
+  }
+})
 reveals.forEach(el => observer.observe(el))
 
 // AI features 动态渲染

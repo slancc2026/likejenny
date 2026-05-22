@@ -24,13 +24,13 @@ export default function CreditsPage() {
   const TYPE_LABEL: Record<string, string> = { register: '注册奖励', daily: '每日签到', consume: '生成消耗', recharge: '积分充值' }
 
   return (
-    <div className="p-7 max-w-3xl">
+    <div className="p-4 md:p-7 max-w-3xl">
       <div className="mb-6">
         <h1 className="font-display text-4xl tracking-wide mb-1">积分中心</h1>
         <p className="text-gray-400 text-sm">查看积分余额和消耗记录</p>
       </div>
       {/* 余额 */}
-      <div className="grid grid-cols-2 gap-0 border-[2px] border-brand-black mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border-[2px] border-brand-black mb-6">
         <div className="p-6 border-r-[2px] border-brand-black">
           <div className="text-[9px] font-bold tracking-[0.3em] text-gray-400 uppercase mb-2">当前积分</div>
           <div className="font-display text-6xl text-brand-green">{credits}</div>
@@ -44,7 +44,7 @@ export default function CreditsPage() {
       <div className="border-[2px] border-brand-black mb-6 bg-brand-black text-brand-white p-6">
         <div className="font-bold mb-1">积分充值</div>
         <p className="text-xs text-gray-400 mb-5">充值功能即将开放，敬请期待</p>
-        <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="grid grid-cols-1 gap-3 mb-4">
           {[{ c: 50, p: 9.9 }, { c: 150, p: 25 }, { c: 500, p: 79 }].map(pkg => (
             <div key={pkg.c} className="border-[2px] border-gray-600 p-3 text-center opacity-50">
               <div className="font-display text-3xl text-brand-green">{pkg.c}</div>

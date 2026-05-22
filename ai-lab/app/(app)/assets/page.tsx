@@ -23,7 +23,7 @@ export default function AssetsPage() {
   }, [])
 
   return (
-    <div className="p-7">
+    <div className="p-4 md:p-7">
       <div className="mb-6">
         <h1 className="font-display text-4xl tracking-wide mb-1">素材库</h1>
         <p className="text-gray-400 text-sm">共 {images.length} 张已生成图片</p>
