@@ -23,7 +23,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       setEmail(user.email ?? '')
       const { data: profile } = await supabase
         .from('profiles').select('credits').eq('id', user.id).single()
-      setCredits(profile?.credits ?? 0)
+  // 尝试发放每日签到积分（静默）
+    if (profile) {
+      const today = new Date().toISOString().split('T')[0]
+      if (profile.last_daily_credit !== today) {
+        // 每日签到 +1 积分
+        const newCredits = (profile.credits ?? 0) + 1
+        supabase.from('profiles').update({ credits: newCredits, last_daily_credit: today }).eq('id', userId).then(() => {
+          supabase.from('credit_logs').insert({
+            user_id: userId, amount: 1, balance: newCredits,
+            type: 'daily', description: '每日签到奖励'
+          }).then(() => {})
+        })
+        setCredits(newCredits)
+      } else {
+        setCredits(profile?.credits ?? 0)
+      }
+    }
       setLoading(false)
     })
   }, [router])

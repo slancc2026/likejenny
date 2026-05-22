@@ -57,7 +57,7 @@ export async function claimDailyCredit(userId: string): Promise<boolean> {
   if (!profile) return false
   if (profile.last_daily_credit === today) return false // 今日已领
 
-  const newBalance = profile.credits + 2
+  const newBalance = profile.credits + 1
   await supabase.from('profiles').update({
     credits: newBalance,
     last_daily_credit: today,
@@ -65,10 +65,10 @@ export async function claimDailyCredit(userId: string): Promise<boolean> {
 
   await supabase.from('credit_logs').insert({
     user_id: userId,
-    amount: 2,
+    amount: 1,
     balance: newBalance,
     type: 'daily',
-    description: '每日登录奖励',
+    description: "每日签到奖励",
   })
 
   return true
