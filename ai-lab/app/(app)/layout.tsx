@@ -3,22 +3,18 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Sidebar } from '@/components/layout/sidebar'
-import Link from 'next/link'
-import { Zap } from 'lucide-react'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const [credits, setCredits] = useState<number | null>(null)
-  const [email, setEmail] = useState<string>('')
+  const [credits, setCredits] = useState(0)
+  const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(true)
+  const [checkedIn, setCheckedIn] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getSession().then(async ({ data }) => {
-      if (!data.session) {
-        router.push('/login')
-        return
-      }
+      if (!data.session) { router.push('/login'); return }
       const user = data.session.user
       setEmail(user.email ?? '')
 
@@ -31,55 +27,72 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       if (profile) {
         const today = new Date().toISOString().split('T')[0]
         if (profile.last_daily_credit !== today) {
-          // 每日签到 +1 积分
           const newCredits = (profile.credits ?? 0) + 1
-          supabase.from('profiles')
+          await supabase.from('profiles')
             .update({ credits: newCredits, last_daily_credit: today })
             .eq('id', user.id)
-            .then(() => {
-              supabase.from('credit_logs').insert({
-                user_id: user.id, amount: 1, balance: newCredits,
-                type: 'daily', description: '每日签到奖励'
-              }).then(() => {})
-            })
+          await supabase.from('credit_logs').insert({
+            user_id: user.id, amount: 1, balance: newCredits,
+            type: 'daily', description: '每日签到奖励'
+          })
           setCredits(newCredits)
+          setCheckedIn(true)
         } else {
           setCredits(profile.credits ?? 0)
+          setCheckedIn(true)
         }
       }
-
       setLoading(false)
     })
   }, [router])
 
   if (loading) return (
-    <div className="flex h-screen items-center justify-center bg-brand-bg">
-      <div className="text-brand-muted text-sm">加载中…</div>
+    <div className="flex h-screen items-center justify-center bg-brand-white">
+      <div className="border-[2px] border-brand-black px-8 py-4 font-display text-2xl tracking-widest animate-pulse">
+        LOADING...
+      </div>
     </div>
   )
 
   return (
-    <div className="flex h-screen overflow-hidden bg-brand-bg">
-      <Sidebar />
+    <div className="flex h-screen overflow-hidden bg-brand-white">
+      <Sidebar credits={credits} email={email} checkedIn={checkedIn} />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="h-14 border-b border-brand-border bg-white px-6 flex items-center justify-between flex-shrink-0">
-          <div className="lg:hidden w-9" />
-          <div className="hidden lg:block" />
+        {/* 顶部栏 */}
+        <header className="h-12 border-b-[2px] border-brand-black bg-brand-white px-6 flex items-center justify-between flex-shrink-0">
+          <div className="lg:hidden w-10" />
+          <div className="hidden lg:flex items-center gap-2 font-mono text-xs text-gray-400 tracking-wider">
+            <span>AI-LAB</span>
+            <span>/</span>
+            <span className="text-brand-black font-bold">WORKSPACE</span>
+          </div>
           <div className="flex items-center gap-3">
-            <Link href="/credits" className="flex items-center gap-1.5 bg-brand-bg border border-brand-border rounded-full px-3 py-1.5 hover:border-brand-green transition-colors">
-              <Zap className="w-3.5 h-3.5 text-brand-orange" />
-              <span className="text-sm font-medium text-brand-text">{credits ?? 0}</span>
-              <span className="text-xs text-brand-muted">积分</span>
-            </Link>
-            <div className="w-8 h-8 rounded-full bg-brand-green flex items-center justify-center text-white text-sm font-medium">
-              {email?.[0]?.toUpperCase() ?? 'U'}
+            <div className="flex items-center gap-1.5 border-[2px] border-brand-black px-3 py-1">
+              <div className="w-1.5 h-1.5 bg-brand-green rounded-full animate-pulse" />
+              <span className="text-[10px] font-bold tracking-wider">系统正常</span>
             </div>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-brand-white">
           {children}
         </main>
+        {/* 状态栏 */}
+        <div className="h-7 border-t-[2px] border-brand-black bg-brand-black text-brand-white flex items-center px-5 gap-5 text-[9px] font-bold tracking-widest flex-shrink-0">
+          <span className="text-brand-green">● API ONLINE</span>
+          <span className="text-gray-500">·</span>
+          <span className="text-gray-400">GPT IMAGE 2</span>
+          <span className="text-gray-500">·</span>
+          <span className="text-gray-400">ai.shengyuanhong.cn</span>
+          <span className="ml-auto text-gray-500" id="status-clock"></span>
+        </div>
       </div>
+      <script dangerouslySetInnerHTML={{ __html: `
+        function tick() {
+          const el = document.getElementById('status-clock')
+          if(el) el.textContent = new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
+        }
+        tick(); setInterval(tick, 1000)
+      `}} />
     </div>
   )
 }

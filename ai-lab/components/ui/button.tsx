@@ -3,7 +3,7 @@ import { forwardRef, ButtonHTMLAttributes } from 'react'
 import { clsx } from 'clsx'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'yellow'
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
 }
@@ -15,18 +15,18 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || loading}
         className={clsx(
-          'inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed',
+          'inline-flex items-center justify-center gap-2 font-bold tracking-wide transition-all duration-100 border-[2px] border-brand-black disabled:opacity-40 disabled:cursor-not-allowed active:translate-y-px',
           {
-            'rounded-full': true,
-            // variants
-            'bg-brand-orange text-white hover:bg-orange-500 active:scale-95 shadow-sm': variant === 'primary',
-            'bg-white border border-brand-border text-brand-text hover:bg-brand-bg active:scale-95': variant === 'secondary',
-            'text-brand-muted hover:text-brand-text hover:bg-brand-bg': variant === 'ghost',
-            'bg-red-500 text-white hover:bg-red-600': variant === 'danger',
-            // sizes
+            'bg-brand-black text-brand-white hover:bg-brand-green hover:text-brand-black': variant === 'primary',
+            'bg-brand-white text-brand-black hover:bg-brand-gray': variant === 'secondary',
+            'bg-transparent text-brand-black hover:bg-brand-gray border-transparent': variant === 'ghost',
+            'bg-brand-red text-white border-brand-red hover:bg-red-700': variant === 'danger',
+            'bg-brand-yellow text-brand-black hover:bg-yellow-400': variant === 'yellow',
+          },
+          {
             'text-xs px-3 py-1.5': size === 'sm',
             'text-sm px-5 py-2.5': size === 'md',
-            'text-base px-8 py-3.5': size === 'lg',
+            'text-sm px-8 py-3.5': size === 'lg',
           },
           className
         )}

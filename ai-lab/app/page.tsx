@@ -8,20 +8,16 @@ export default async function Home() {
   if (user) redirect('/dashboard')
 
   return (
-    <main className="min-h-screen bg-brand-bg flex items-center justify-center px-4">
+    <main className="min-h-screen bg-brand-black text-brand-white flex items-center justify-center px-6">
       <div className="text-center max-w-lg">
-        <div className="w-16 h-16 rounded-2xl bg-brand-green mx-auto mb-6 flex items-center justify-center text-white text-2xl">✨</div>
-        <h1 className="font-display text-3xl font-light text-brand-text mb-2">莱珂珍妮 AI 实验室</h1>
-        <p className="text-brand-muted mb-8 text-sm leading-relaxed">用 AI 重新定义餐饮品牌视觉<br />菜品精修 · 宣传海报 · 菜单设计 · 品牌LOGO</p>
-        <Link
-          href="/login"
-          className="inline-flex items-center gap-2 bg-brand-orange text-white px-8 py-3 rounded-full text-sm font-medium hover:bg-orange-500 transition-colors"
-        >
+        <div className="font-display text-7xl tracking-wide mb-2">莱珂珍妮</div>
+        <div className="inline-block bg-brand-green border-[2px] border-brand-green text-brand-black text-[10px] font-black px-3 py-1 tracking-[0.3em] mb-8">AI VISUAL LAB</div>
+        <p className="text-gray-400 text-sm mb-8 leading-relaxed">用 AI 重新定义餐饮品牌视觉<br />菜品精修 · 宣传海报 · 菜单设计 · 品牌LOGO</p>
+        <Link href="/login"
+          className="inline-flex items-center gap-2 bg-brand-green text-brand-black px-8 py-4 font-bold text-sm tracking-wider border-[2px] border-brand-green hover:bg-brand-yellow transition-colors">
           进入工作台 →
         </Link>
-        <p className="mt-6 text-xs text-brand-muted">
-          © 2026 河南盛塬宏品牌管理有限责任公司
-        </p>
+        <p className="mt-8 text-[10px] text-gray-600 tracking-wider">© 2026 河南盛塬宏品牌管理有限责任公司</p>
       </div>
     </main>
   )
