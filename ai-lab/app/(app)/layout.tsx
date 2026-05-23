@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Sidebar } from '@/components/layout/sidebar'
+import { BrandSetupModal } from '@/components/brand-setup-modal'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -10,6 +11,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(true)
   const [checkedIn, setCheckedIn] = useState(false)
+  const [showBrandSetup, setShowBrandSetup] = useState(false)
+  const [userId, setUserId] = useState('')
 
   useEffect(() => {
     const supabase = createClient()
@@ -17,12 +20,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       if (!data.session) { router.push('/login'); return }
       const user = data.session.user
       setEmail(user.email ?? '')
+      setUserId(user.id)
 
       const { data: profile } = await supabase
         .from('profiles')
         .select('credits, last_daily_credit')
         .eq('id', user.id)
         .single()
+
+      // 检测是否有品牌档案
+      const { data: brand } = await supabase
+        .from('brand_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single()
+      if (!brand) setShowBrandSetup(true)
 
       if (profile) {
         const today = new Date().toISOString().split('T')[0]
@@ -56,6 +68,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-brand-white">
+      {showBrandSetup && (
+        <BrandSetupModal
+          userId={userId}
+          onComplete={() => setShowBrandSetup(false)}
+        />
+      )}
       <Sidebar credits={credits} email={email} checkedIn={checkedIn} />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* 顶部栏 */}

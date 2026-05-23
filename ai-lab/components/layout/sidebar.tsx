@@ -18,6 +18,7 @@ const NAV = [
   { href: '/packaging', label: '包装物料', emoji: '📦', cost: '20分' },
   { href: '/bundle', label: '一键全套', emoji: '⚡', hot: true },
   { type: 'sep', label: '我的' },
+  { href: '/brand', label: '品牌档案', emoji: '🏷️' },
   { href: '/assets', label: '素材库', emoji: '🗂' },
   { href: '/credits', label: '积分充值', emoji: '💳' },
 ]
