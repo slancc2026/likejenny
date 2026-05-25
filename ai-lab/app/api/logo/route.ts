@@ -24,11 +24,17 @@ export async function POST(req: NextRequest) {
   try {
     await deductCredits(user.id, 'logo', task.id)
 
+    const LOGO_DIRECTIONS = [
+      '图形+文字组合，以品牌核心食材或餐具为抽象图形元素，现代简约风格',
+      '纯文字Logo，品牌名称做字体设计处理，有辨识度的字形创意',
+      '徽章/印章风格，圆形或方形框架内含品牌名和图形，有品质感',
+    ]
+
     // 串行生成 3 个方案（每个约 60-90s）
     const urls: string[] = []
     for (let i = 0; i < 3; i++) {
       await supabase.from('tasks').update({ progress: i * 33 }).eq('id', task.id)
-      const prompt = logoPrompt(brand, i)
+      const prompt = logoPrompt(brand, LOGO_DIRECTIONS[i])
       const [b64] = await generateImage({ prompt, size: '1024x1024', quality: 'medium' })
       const url = await uploadGeneratedImage(user.id, 'logo', task.id, b64, i)
       urls.push(url)
