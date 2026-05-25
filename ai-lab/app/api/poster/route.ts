@@ -45,7 +45,14 @@ export async function POST(req: NextRequest) {
   try {
     await deductCredits(user.id, 'poster', task.id)
 
-    const prompt = posterPrompt(brand, posterType, { dish_name: dishName, price, festival, dish_desc: dishDesc })
+    const prompt = posterPrompt(brand, {
+      posterType: posterType as 'daily' | 'festival' | 'newproduct',
+      platform,
+      dishName,
+      price,
+      festival: festival || undefined,
+      dishDesc: dishDesc || undefined,
+    })
     const [b64] = await generateImage({ prompt, size, quality: 'medium' })
     const url = await uploadGeneratedImage(user.id, 'poster', task.id, b64, 0)
 

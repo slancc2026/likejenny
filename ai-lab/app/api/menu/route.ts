@@ -11,7 +11,14 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: '未登录' }, { status: 401 })
 
-  const { dishes } = await req.json() // dishes: string（格式化好的菜品文本）
+  const { dishes, menuStyle } = await req.json()
+  // dishes 可能是字符串或数组，统一转为数组格式
+  const dishesArr = Array.isArray(dishes)
+    ? dishes
+    : String(dishes).split('\n').filter(Boolean).map((line: string) => {
+        const parts = line.split(/[,，\s]+/)
+        return { category: '招牌菜', name: parts[0] || line, price: parts[1] || '', desc: parts[2] || '' }
+      })
 
   const { data: brandData } = await supabase
     .from('brand_profiles').select('*').eq('user_id', user.id).eq('is_default', true).single()
@@ -19,13 +26,13 @@ export async function POST(req: NextRequest) {
 
   const { data: task } = await supabase.from('tasks').insert({
     user_id: user.id, task_type: 'menu', status: 'processing',
-    input_data: { dishes }, credits_cost: 8,
+    input_data: { dishes: dishesArr }, credits_cost: 8,
   }).select().single()
   if (!task) return NextResponse.json({ error: '创建任务失败' }, { status: 500 })
 
   try {
     await deductCredits(user.id, 'menu', task.id)
-    const prompt = menuPrompt(brand, dishes)
+    const prompt = menuPrompt(brand, dishesArr, (menuStyle || 'fresh') as 'fresh' | 'chinese' | 'minimal')
     const [b64] = await generateImage({ prompt, size: '1024x1536', quality: 'high' })
     const url = await uploadGeneratedImage(user.id, 'menu', task.id, b64, 0)
     await supabase.from('tasks').update({ status: 'done', output_urls: [url], progress: 100 }).eq('id', task.id)
