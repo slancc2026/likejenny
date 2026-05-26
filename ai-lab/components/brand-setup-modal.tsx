@@ -74,9 +74,18 @@ export function BrandSetupModal({ userId, onComplete }: Props) {
               {step === 1 ? '告诉我你的品牌' : '主打菜品（选填）'}
             </div>
           </div>
-          <div className="flex gap-1.5">
-            <div className={`w-8 h-1.5 ${step >= 1 ? 'bg-brand-green' : 'bg-gray-600'}`} />
-            <div className={`w-8 h-1.5 ${step >= 2 ? 'bg-brand-green' : 'bg-gray-600'}`} />
+          <div className="flex items-center gap-3">
+            <div className="flex gap-1.5">
+              <div className={`w-8 h-1.5 ${step >= 1 ? 'bg-brand-green' : 'bg-gray-600'}`} />
+              <div className={`w-8 h-1.5 ${step >= 2 ? 'bg-brand-green' : 'bg-gray-600'}`} />
+            </div>
+            <button
+              onClick={() => onComplete({ brand_name: '', cuisine_type: '' })}
+              className="text-gray-500 hover:text-white transition-colors ml-2"
+              title="跳过，稍后在品牌档案中设置"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
@@ -196,8 +205,14 @@ export function BrandSetupModal({ userId, onComplete }: Props) {
                   {loading ? '保存中…' : '完成设置 →'}
                 </button>
               </div>
+              <button
+                onClick={() => onComplete({ brand_name: '', cuisine_type: '' })}
+                className="w-full text-center text-xs text-gray-400 hover:text-brand-black transition-colors py-2"
+              >
+                跳过，稍后在「品牌档案」中设置
+              </button>
             </div>
-          )}
+          }
         </div>
       </div>
     </div>
