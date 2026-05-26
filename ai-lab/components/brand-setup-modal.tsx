@@ -6,10 +6,10 @@ import { X } from 'lucide-react'
 
 const CUISINE_TYPES = [
   { value: 'light_food', label: '轻食健康', emoji: '🥗', desc: '沙拉、轻食、健康餐' },
-  { value: 'cafe', label: '咖啡茶饮', emoji: '☕', desc: '咖啡、奶茶、饮品' },
-  { value: 'hotpot', label: '火锅烤肉', emoji: '🔥', desc: '火锅、烤肉、串串' },
-  { value: 'chinese', label: '中式正餐', emoji: '🍜', desc: '中餐、快餐、家常菜' },
-  { value: 'fastfood', label: '快餐小吃', emoji: '🍱', desc: '小吃、外卖、快餐' },
+  { value: 'cafe',       label: '咖啡茶饮', emoji: '☕', desc: '咖啡、奶茶、饮品' },
+  { value: 'hotpot',     label: '火锅烤肉', emoji: '🔥', desc: '火锅、烤肉、串串' },
+  { value: 'chinese',    label: '中式正餐', emoji: '🍜', desc: '中餐、快餐、家常菜' },
+  { value: 'fastfood',   label: '快餐小吃', emoji: '🍱', desc: '小吃、外卖、快餐' },
 ]
 
 interface Props {
@@ -24,10 +24,13 @@ export function BrandSetupModal({ userId, onComplete }: Props) {
   const [mainDishes, setMainDishes] = useState('')
   const [loading, setLoading] = useState(false)
 
+  function handleSkip() {
+    onComplete({ brand_name: '', cuisine_type: '' })
+  }
+
   async function handleSubmit() {
     if (!brandName.trim()) { toast.error('请填写品牌名称'); return }
     if (!cuisineType) { toast.error('请选择餐饮类型'); return }
-
     setLoading(true)
     try {
       const supabase = createClient()
@@ -39,25 +42,27 @@ export function BrandSetupModal({ userId, onComplete }: Props) {
         chinese:    { primary: '#8B1A1A', secondary: '#FFF8F0', accent: '#D4AF37' },
         fastfood:   { primary: '#FF6B35', secondary: '#FFFFFF', accent: '#FFD700' },
       }
-
+      const styleMap: Record<string, string> = {
+        light_food: '清新ins风', cafe: '精致文艺',
+        hotpot: '热烈氛围', chinese: '传统国风', fastfood: '活力快潮',
+      }
       const { error } = await supabase.from('brand_profiles').upsert({
         user_id: userId,
         brand_name: brandName.trim(),
         brand_name_en: '',
         cuisine_type: cuisineType,
-        style_preference: cat.value === 'light_food' ? '清新ins风' : cat.value === 'cafe' ? '精致文艺' : cat.value === 'hotpot' ? '热烈氛围' : cat.value === 'chinese' ? '传统国风' : '活力快潮',
-        target_customer: cat.value === 'light_food' ? '大学生女生' : '年轻白领',
+        style_preference: styleMap[cuisineType] || '清新ins风',
+        target_customer: cuisineType === 'light_food' ? '大学生女生' : '年轻白领',
         main_dishes: mainDishes.trim() || cat.label,
         color_palette: colorMap[cuisineType],
         slogan: '',
         is_default: true,
       }, { onConflict: 'user_id' })
-
       if (error) throw error
       toast.success('品牌档案已设置！')
       onComplete({ brand_name: brandName.trim(), cuisine_type: cuisineType })
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : '保存失败')
+      toast.error(err instanceof Error ? err.message : '保存失败，请稍后重试')
     } finally {
       setLoading(false)
     }
@@ -66,10 +71,13 @@ export function BrandSetupModal({ userId, onComplete }: Props) {
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
       <div className="bg-brand-white w-full max-w-md border-[2px] border-brand-black">
+
         {/* 头部 */}
         <div className="bg-brand-black px-6 py-4 flex items-center justify-between">
           <div>
-            <div className="text-[9px] font-bold tracking-[0.3em] text-brand-green uppercase">STEP {step} / 2</div>
+            <div className="text-[9px] font-bold tracking-[0.3em] text-brand-green uppercase">
+              STEP {step} / 2
+            </div>
             <div className="font-display text-2xl text-white tracking-wide">
               {step === 1 ? '告诉我你的品牌' : '主打菜品（选填）'}
             </div>
@@ -80,9 +88,9 @@ export function BrandSetupModal({ userId, onComplete }: Props) {
               <div className={`w-8 h-1.5 ${step >= 2 ? 'bg-brand-green' : 'bg-gray-600'}`} />
             </div>
             <button
-              onClick={() => onComplete({ brand_name: '', cuisine_type: '' })}
-              className="text-gray-500 hover:text-white transition-colors ml-2"
+              onClick={handleSkip}
               title="跳过，稍后在品牌档案中设置"
+              className="text-gray-500 hover:text-white transition-colors ml-1"
             >
               <X className="w-5 h-5" />
             </button>
@@ -138,10 +146,14 @@ export function BrandSetupModal({ userId, onComplete }: Props) {
                       <span className="text-xl">{ct.emoji}</span>
                       <div>
                         <div className="font-bold text-sm">{ct.label}</div>
-                        <div className={`text-[10px] ${cuisineType === ct.value ? 'text-gray-300' : 'text-gray-400'}`}>{ct.desc}</div>
+                        <div className={`text-[10px] ${cuisineType === ct.value ? 'text-gray-300' : 'text-gray-400'}`}>
+                          {ct.desc}
+                        </div>
                       </div>
                       {cuisineType === ct.value && (
-                        <div className="ml-auto w-5 h-5 bg-brand-green flex items-center justify-center text-brand-black text-xs font-black">✓</div>
+                        <div className="ml-auto w-5 h-5 bg-brand-green flex items-center justify-center text-brand-black text-xs font-black">
+                          ✓
+                        </div>
                       )}
                     </button>
                   ))}
@@ -157,6 +169,10 @@ export function BrandSetupModal({ userId, onComplete }: Props) {
                 className="w-full bg-brand-black text-white py-3.5 text-sm font-bold tracking-wider border-[2px] border-brand-black hover:bg-brand-green hover:text-brand-black transition-colors"
               >
                 下一步 →
+              </button>
+
+              <button onClick={handleSkip} className="w-full text-center text-xs text-gray-400 hover:text-brand-black transition-colors py-1">
+                跳过，稍后设置
               </button>
             </div>
           ) : (
@@ -185,7 +201,7 @@ export function BrandSetupModal({ userId, onComplete }: Props) {
                 <p className="text-xs font-bold text-brand-green mb-1">设置完成后你将获得：</p>
                 <div className="text-[10px] text-gray-500 space-y-0.5">
                   <div>· 海报、菜单、LOGO 自动带入品牌名「{brandName}」</div>
-                  <div>· AI 风格自动匹配{CUISINE_TYPES.find(c=>c.value===cuisineType)?.label}品类调性</div>
+                  <div>· AI 风格自动匹配{CUISINE_TYPES.find(c => c.value === cuisineType)?.label}品类调性</div>
                   <div>· 可随时在「品牌档案」中修改</div>
                 </div>
               </div>
@@ -200,20 +216,19 @@ export function BrandSetupModal({ userId, onComplete }: Props) {
                 <button
                   onClick={handleSubmit}
                   disabled={loading}
-                  className="flex-2 flex-grow-[2] bg-brand-green border-[2px] border-brand-black text-brand-black py-3 text-sm font-bold hover:bg-yellow-300 transition-colors disabled:opacity-40"
+                  className="flex-[2] bg-brand-green border-[2px] border-brand-black text-brand-black py-3 text-sm font-bold hover:bg-yellow-300 transition-colors disabled:opacity-40"
                 >
                   {loading ? '保存中…' : '完成设置 →'}
                 </button>
               </div>
-              <button
-                onClick={() => onComplete({ brand_name: '', cuisine_type: '' })}
-                className="w-full text-center text-xs text-gray-400 hover:text-brand-black transition-colors py-2"
-              >
+
+              <button onClick={handleSkip} className="w-full text-center text-xs text-gray-400 hover:text-brand-black transition-colors py-1">
                 跳过，稍后在「品牌档案」中设置
               </button>
             </div>
-          }
+          )}
         </div>
+
       </div>
     </div>
   )
