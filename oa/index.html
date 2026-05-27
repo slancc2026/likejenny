@@ -245,6 +245,43 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
       <div class="box">
         <div class="box-header">第一步 · 录入订单数量</div>
         <div class="box-body">
+
+          <!-- 图片识别入口 -->
+          <div id="ocr-zone" style="border:2px dashed var(--gray2);padding:16px;margin-bottom:16px;background:#fafaf8">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px">
+              <div>
+                <div style="font-size:12px;font-weight:700;margin-bottom:2px">📷 上传备货单图片自动识别</div>
+                <div style="font-size:11px;color:#888">支持美团/饿了么/自建系统的备货单截图，AI自动解析产品和数量</div>
+              </div>
+              <label id="ocr-upload-label" style="cursor:pointer">
+                <input type="file" id="ocr-file" accept="image/*" style="display:none" onchange="handleOcrUpload(event)">
+                <div class="btn btn-black btn-sm">选择图片</div>
+              </label>
+            </div>
+
+            <!-- 预览+状态区 -->
+            <div id="ocr-preview" style="display:none">
+              <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
+                <img id="ocr-img" style="max-height:160px;max-width:200px;border:2px solid var(--black);flex-shrink:0" src="">
+                <div style="flex:1;min-width:200px">
+                  <div id="ocr-status" style="font-size:12px;color:#888;margin-bottom:8px">等待识别…</div>
+                  <div id="ocr-result-list" style="font-size:12px;line-height:2"></div>
+                  <div id="ocr-actions" style="display:none;margin-top:10px;display:flex;gap:8px">
+                    <button class="btn btn-green btn-sm" onclick="applyOcrResult()">✓ 应用识别结果</button>
+                    <button class="btn btn-ghost btn-sm" onclick="resetOcr()">重新上传</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 分割线 -->
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <div style="flex:1;height:1px;background:var(--gray)"></div>
+            <div style="font-size:10px;font-weight:700;color:var(--gray2);letter-spacing:.2em">或手动录入</div>
+            <div style="flex:1;height:1px;background:var(--gray)"></div>
+          </div>
+
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
             <div style="font-size:12px;color:#666">点击 ＋／－ 录入各款销售数量</div>
             <div style="display:flex;gap:8px">
@@ -362,6 +399,27 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
       <div class="page-header">
         <div class="page-eyebrow">Settings · 系统设置</div>
         <div class="page-title">设置</div>
+      </div>
+
+      <!-- Claude API Key 设置 -->
+      <div class="box">
+        <div class="box-header">Claude AI 识别配置（图片识别备货单）</div>
+        <div class="box-body">
+          <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px">
+            <div class="feieyun-status">
+              <div class="status-dot" id="claude-dot" style="background:var(--gray2)"></div>
+              <span id="claude-status-text">未配置</span>
+            </div>
+          </div>
+          <div style="margin-bottom:12px">
+            <label class="label">Anthropic API Key</label>
+            <input class="input" id="claude-apikey" type="password" placeholder="sk-ant-..." oninput="saveClaudeConfig()">
+          </div>
+          <div style="font-size:11px;color:#888">
+            在 <a href="https://console.anthropic.com" target="_blank" style="color:var(--green)">console.anthropic.com</a> 获取 API Key。
+            Key 仅保存在本地浏览器，不会上传到任何服务器。
+          </div>
+        </div>
       </div>
 
       <!-- 飞鹅打印机设置 -->
@@ -997,6 +1055,10 @@ function initApp() {
   renderRecipes()
   renderNutrition()
   loadFeieyunConfig()
+  // 加载Claude配置
+  const key = localStorage.getItem('claude_apikey') || ''
+  if (key) document.getElementById('claude-apikey').value = key
+  updateClaudeStatus()
 }
 
 // ── 订单录入 ──
@@ -1233,6 +1295,208 @@ function renderNutrition() {
       <td style="font-size:11px;color:#666">${n.bread}</td>
     </tr>`
   }).join('')
+}
+
+// ── Claude API Key 配置 ──
+function saveClaudeConfig() {
+  const key = document.getElementById('claude-apikey').value.trim()
+  localStorage.setItem('claude_apikey', key)
+  updateClaudeStatus()
+}
+
+function updateClaudeStatus() {
+  const key = localStorage.getItem('claude_apikey') || ''
+  const dot = document.getElementById('claude-dot')
+  const text = document.getElementById('claude-status-text')
+  if (dot && text) {
+    if (key.startsWith('sk-ant-')) {
+      dot.className = 'status-dot dot-green'
+      text.textContent = '已配置'
+    } else {
+      dot.className = 'status-dot dot-gray'
+      text.textContent = '未配置（请填写 API Key）'
+    }
+  }
+}
+
+// ── 图片OCR识别 ──
+let ocrData = {} // 识别结果缓存：{产品id: 数量}
+
+function handleOcrUpload(event) {
+  const file = event.target.files[0]
+  if (!file) return
+
+  const apiKey = localStorage.getItem('claude_apikey') || ''
+  if (!apiKey.startsWith('sk-ant-')) {
+    showToast('请先在「设置」页配置 Claude API Key', 'error', 4000)
+    switchPage('settings')
+    return
+  }
+
+  // 显示预览
+  const reader = new FileReader()
+  reader.onload = e => {
+    document.getElementById('ocr-preview').style.display = 'block'
+    document.getElementById('ocr-img').src = e.target.result
+    document.getElementById('ocr-status').textContent = '🔍 AI 识别中，请稍候…'
+    document.getElementById('ocr-result-list').innerHTML = ''
+    document.getElementById('ocr-actions').style.display = 'none'
+    // 调用 Claude Vision
+    recognizeOrder(e.target.result.split(',')[1], file.type || 'image/jpeg', apiKey)
+  }
+  reader.readAsDataURL(file)
+}
+
+async function recognizeOrder(base64, mediaType, apiKey) {
+  // 产品名称列表，给AI参考
+  const productNames = PRODUCTS.map(p => p.name).join('、')
+
+  const prompt = `你是一个餐厅备货单识别助手。请识别图片中的订单信息，提取出每个产品的名称和数量。
+
+系统中已有的产品列表（请尽量匹配这些名称）：
+${productNames}
+
+请以JSON格式返回结果，格式如下：
+{
+  "orders": [
+    {"name": "产品名称", "qty": 数量},
+    ...
+  ],
+  "note": "备注（如有无法识别的内容）"
+}
+
+注意：
+1. 只返回JSON，不要其他文字
+2. 产品名称尽量匹配系统产品列表中的名称
+3. 如果图片中有相似但不完全匹配的名称，也尽量对应到最接近的系统产品
+4. 数量必须是整数`
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: mediaType, data: base64 }
+            },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
+    })
+
+    if (!res.ok) {
+      const err = await res.text()
+      throw new Error(`API错误 ${res.status}: ${err}`)
+    }
+
+    const data = await res.json()
+    const text = data.content?.[0]?.text || ''
+
+    // 解析JSON（清洗 markdown 代码块）
+    const cleaned = text.replace(/```json|```/g, '').trim()
+    const parsed = JSON.parse(cleaned)
+
+    showOcrResult(parsed)
+  } catch (err) {
+    document.getElementById('ocr-status').innerHTML =
+      `<span style="color:var(--red)">❌ 识别失败：${err.message}</span>`
+    showToast('识别失败，请检查图片或API Key', 'error')
+  }
+}
+
+function showOcrResult(parsed) {
+  const orders = parsed.orders || []
+  ocrData = {}
+
+  if (!orders.length) {
+    document.getElementById('ocr-status').innerHTML =
+      '<span style="color:var(--red)">未识别到有效订单，请重试</span>'
+    return
+  }
+
+  // 模糊匹配产品
+  let matched = 0, unmatched = []
+  orders.forEach(o => {
+    const product = fuzzyMatchProduct(o.name)
+    if (product) {
+      ocrData[product.id] = (ocrData[product.id] || 0) + o.qty
+      matched++
+    } else {
+      unmatched.push(o.name)
+    }
+  })
+
+  // 渲染结果
+  let html = ''
+  Object.entries(ocrData).forEach(([id, qty]) => {
+    const p = PRODUCTS.find(p => p.id === id)
+    if (p) html += `<div style="padding:2px 0">✓ <b>${p.name}</b> × <b style="color:var(--orange)">${qty}</b></div>`
+  })
+  if (unmatched.length) {
+    html += `<div style="color:#888;margin-top:4px">未匹配：${unmatched.join('、')}</div>`
+  }
+  if (parsed.note) {
+    html += `<div style="color:#888;font-size:11px;margin-top:4px">备注：${parsed.note}</div>`
+  }
+
+  document.getElementById('ocr-result-list').innerHTML = html
+  document.getElementById('ocr-status').innerHTML =
+    `<span style="color:var(--green)">✓ 识别完成，共 ${matched} 款产品${unmatched.length ? `，${unmatched.length} 项未匹配` : ''}</span>`
+  document.getElementById('ocr-actions').style.display = 'flex'
+  showToast(`识别成功！${matched} 款产品`, 'success')
+}
+
+// 模糊匹配：先精确，再包含，再相似
+function fuzzyMatchProduct(name) {
+  if (!name) return null
+  const n = name.trim()
+  // 1. 精确匹配
+  let p = PRODUCTS.find(p => p.name === n)
+  if (p) return p
+  // 2. 包含匹配（系统名包含识别名的关键字）
+  p = PRODUCTS.find(p => n.includes(p.name) || p.name.includes(n))
+  if (p) return p
+  // 3. 关键词匹配（取识别名前两个字）
+  const keyword = n.slice(0, 2)
+  p = PRODUCTS.find(p => p.name.includes(keyword))
+  if (p) return p
+  return null
+}
+
+function applyOcrResult() {
+  if (!Object.keys(ocrData).length) return
+  // 先清空
+  PRODUCTS.forEach(p => {
+    const el = document.getElementById('qty-' + p.id)
+    if (el) el.value = 0
+  })
+  // 填入识别结果
+  Object.entries(ocrData).forEach(([id, qty]) => {
+    const el = document.getElementById('qty-' + id)
+    if (el) el.value = qty
+  })
+  updateTotal()
+  showToast('已自动填入识别结果，请核对后生成备料单', 'success', 4000)
+  // 滚动到订单列表
+  document.getElementById('order-list').scrollIntoView({ behavior: 'smooth' })
+}
+
+function resetOcr() {
+  document.getElementById('ocr-file').value = ''
+  document.getElementById('ocr-preview').style.display = 'none'
+  document.getElementById('ocr-img').src = ''
+  ocrData = {}
 }
 
 // ── 飞鹅打印机 ──
