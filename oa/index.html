@@ -438,7 +438,7 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
             <input class="input" id="s-fangzhou-key" type="password" placeholder="输入方舟平台 API Key">
           </div>
           <div style="font-size:11px;color:#888;margin-bottom:12px">
-            识别模型：<b>glm-4.6v</b> · 接口：api.aiyungc.cn/v1
+            识别模型：<b>claude-haiku-4-5-20251001</b> · 接口：api.aiyungc.cn/v1
           </div>
           <button class="btn btn-black" onclick="saveSettings()">保存配置</button>
         </div>
@@ -622,7 +622,7 @@ async function loadSettings() {
     const dot = document.getElementById('ai-dot')
     const txt = document.getElementById('ai-status-text')
     if (dot && txt) {
-      if (data.fangzhou_api_key) { dot.className='status-dot dot-green'; txt.textContent='已配置 · glm-4.6v' }
+      if (data.fangzhou_api_key) { dot.className='status-dot dot-green'; txt.textContent='已配置 · claude-haiku-4-5' }
       else { dot.className='status-dot dot-gray'; txt.textContent='未配置' }
     }
   }
@@ -755,20 +755,28 @@ async function recognizeOrder(base64, mediaType, apiKey) {
 以JSON返回：{"orders":[{"name":"产品名","qty":数量}],"note":"备注"}
 只返回JSON，产品名尽量匹配列表，数量为整数。`
   try {
-    const res = await fetch('https://api.aiyungc.cn/v1/chat/completions', {
+    const res = await fetch('https://api.aiyungc.cn/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
       body: JSON.stringify({
-        model: 'glm-4.6v', max_tokens: 1000,
-        messages: [{ role: 'user', content: [
-          { type: 'image_url', image_url: { url: `data:${mediaType};base64,${base64}` } },
-          { type: 'text', text: prompt }
-        ]}]
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+            { type: 'text', text: prompt }
+          ]
+        }]
       })
     })
-    if (!res.ok) throw new Error(`API错误 ${res.status}`)
+    if (!res.ok) throw new Error(`API错误 ${res.status}: ${await res.text()}`)
     const data = await res.json()
-    const text = data.choices?.[0]?.message?.content || ''
+    const text = data.content?.[0]?.text || ''
     const parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
     showOcrResult(parsed)
   } catch (err) {
