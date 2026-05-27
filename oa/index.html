@@ -848,7 +848,14 @@ async function recognizeOrder(base64, mediaType, apiKey) {
     if (!res.ok) throw new Error(`API错误 ${res.status}: ${await res.text()}`)
     const data = await res.json()
     const text = data.content?.[0]?.text || ''
-    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
+    const cleaned = text
+      .replace(/```json|```/g, '')  // 去掉 markdown 代码块
+      .replace(/[\x00-\x1F\x7F]/g, m => m === '\n' || m === '\r' || m === '\t' ? '' : '') // 去掉控制字符
+      .trim()
+    // 提取第一个完整的 JSON 对象（防止模型在JSON前后加了多余文字）
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) throw new Error('未找到有效的JSON内容')
+    const parsed = JSON.parse(jsonMatch[0])
     showOcrResult(parsed)
   } catch (err) {
     document.getElementById('ocr-status').innerHTML = `<span style="color:var(--red)">❌ 识别失败：${err.message}</span>`
