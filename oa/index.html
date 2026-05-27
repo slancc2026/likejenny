@@ -705,42 +705,41 @@ async function saveSettings() {
 // 员工管理（管理员专用）
 // ══════════════════════════════════════════════
 async function loadPendingUsers() {
-  const { data: users } = await sb.from('profiles').select('id, display_name, is_oa_user, is_admin, created_at')
-  if (!users) return
+  const { data: users, error } = await sb
+    .from('profiles')
+    .select('id, display_name, email, is_oa_user, is_admin, created_at')
+    .order('created_at', { ascending: false })
 
-  // 查 auth.users 邮箱（通过 admin API，这里用已有的 /api/admin/users 接口）
-  const res = await fetch('/api/admin/users').catch(() => null)
-  const authData = res?.ok ? await res.json() : { users: [] }
-  const authUsers = authData.users || []
+  if (error || !users) {
+    document.getElementById('pending-users-list').innerHTML = '<div style="padding:16px;font-size:13px;color:#c00">加载失败：' + (error?.message || '未知错误') + '</div>'
+    return
+  }
 
+  const emailOf = (u) => u.email || u.id.slice(0, 12) + '…'
   const pending = users.filter(u => !u.is_oa_user && !u.is_admin)
-  const active = users.filter(u => u.is_oa_user || u.is_admin)
-
-  const emailOf = (id) => authUsers.find(u => u.id === id)?.email || id.slice(0,12) + '…'
+  const active  = users.filter(u => u.is_oa_user || u.is_admin)
 
   // 待审核
-  const pendingEl = document.getElementById('pending-users-list')
-  pendingEl.innerHTML = pending.length === 0
+  document.getElementById('pending-users-list').innerHTML = pending.length === 0
     ? '<div style="padding:16px;font-size:13px;color:#666">暂无待审核账号</div>'
     : pending.map(u => `
       <div class="user-row">
         <div>
           <div style="font-weight:700;font-size:13px">${u.display_name || '未填写姓名'}</div>
-          <div style="font-size:11px;color:#888">${emailOf(u.id)}</div>
+          <div style="font-size:11px;color:#888">${emailOf(u)}</div>
         </div>
         <span class="badge" style="background:#FFF3CD;color:#856404">待审核</span>
         <button class="btn btn-green btn-sm" onclick="approveUser('${u.id}')">✓ 激活</button>
       </div>`).join('')
 
   // 全部员工
-  const allEl = document.getElementById('all-users-list')
-  allEl.innerHTML = active.length === 0
+  document.getElementById('all-users-list').innerHTML = active.length === 0
     ? '<div style="padding:16px;font-size:13px;color:#666">暂无员工账号</div>'
     : active.map(u => `
       <div class="user-row">
         <div>
-          <div style="font-weight:700;font-size:13px">${u.display_name || emailOf(u.id)}</div>
-          <div style="font-size:11px;color:#888">${emailOf(u.id)}</div>
+          <div style="font-weight:700;font-size:13px">${u.display_name || emailOf(u)}</div>
+          <div style="font-size:11px;color:#888">${emailOf(u)}</div>
         </div>
         ${u.is_admin ? '<span class="badge badge-admin">管理员</span>' : '<span class="badge badge-green">员工</span>'}
         ${u.is_admin ? '<div></div>' : `<button class="btn btn-ghost btn-sm" onclick="revokeUser('${u.id}')">停用</button>`}
@@ -830,9 +829,7 @@ function parseOcrText(text) {
     .replace(/贝由/g, '贝贝')       // 贝由南瓜→贝贝南瓜
     .replace(/\s*三\s*明\s*治/g, '三明治')  // 三 明 治→三明治
 
-  // 调试：显示清洗后的每一行
-  const debugLines = cleaned.split('\n').map((l,i) => `${i+1}: ${l.trim()}`).filter(l=>l.length>3).join('\n')
-  alert('清洗后各行：\n' + debugLines.slice(0, 800))
+  // 调试行已移除
 
   // 别名映射：外卖平台名称关键词 → 系统产品ID
   const ALIAS_MAP = [
