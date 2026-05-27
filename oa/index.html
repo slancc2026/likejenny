@@ -821,9 +821,8 @@ async function runTesseract(imageSrc) {
 }
 
 function parseOcrText(text) {
-  // 调试：显示原始识别文字
-  document.getElementById('ocr-result-list').innerHTML =
-    `<div style="font-size:10px;color:#888;background:#f5f5f0;padding:8px;margin-bottom:8px;white-space:pre-wrap;max-height:120px;overflow-y:auto">原始文字：\n${text}</div>`
+  // 临时调试：弹窗显示原始识别文字
+  alert('Tesseract原始文字：\n' + text.slice(0, 500))
 
   // 别名映射：外卖平台全名 → 系统产品ID
   const ALIAS_MAP = [
