@@ -821,41 +821,47 @@ async function runTesseract(imageSrc) {
 }
 
 function parseOcrText(text) {
-  // 临时调试：弹窗显示原始识别文字
-  alert('Tesseract原始文字：\n' + text.slice(0, 500))
+  // 第一步：清洗OCR文字（去空格、统一大小写、修正常见误字）
+  const cleaned = text
+    .replace(/\s+/g, ' ')           // 多空格合并
+    .replace(/震/g, '熏')           // 烟震鸡→烟熏鸡
+    .replace(/呈/g, '治')           // 三明呈→三明治
+    .replace(/喱/g, '治')           // 三明喱→三明治
+    .replace(/贝由/g, '贝贝')       // 贝由南瓜→贝贝南瓜
+    .replace(/\s*三\s*明\s*治/g, '三明治')  // 三 明 治→三明治
 
-  // 别名映射：外卖平台全名 → 系统产品ID
+  // 别名映射：外卖平台名称关键词 → 系统产品ID
   const ALIAS_MAP = [
-    { keywords: ['低脂土豆泥烟熏鸡','土豆泥烟熏鸡','烟熏鸡三明治'], id: 'tudouyuxunji' },
-    { keywords: ['贝贝南瓜双鸡排','南瓜双鸡排','双鸡排三明治'], id: 'jingdianpai' },
+    { keywords: ['低脂土豆泥烟熏鸡','土豆泥烟熏鸡','烟熏鸡三明治','低脂土豆'], id: 'tudouyuxunji' },
+    { keywords: ['贝贝南瓜双鸡排','贝由南瓜','南瓜双鸡排','双鸡排'], id: 'jingdianpai' },
     { keywords: ['芝士土豆泥烤肠','火鸡面三明治','烤肠火鸡'], id: 'tudouyuxunji' },
     { keywords: ['凤梨鸡排','菠萝鸡排'], id: 'jingdianpai' },
-    { keywords: ['土豆泥碗','巨掉称'], id: 'tudouyuxunji' },
-    { keywords: ['蟹柳滑蛋','蟹柳三明治'], id: 'xiebliudan' },
+    { keywords: ['土豆泥碗','巨掉称','巨掉'], id: 'tudouyuxunji' },
+    { keywords: ['蟹柳滑蛋','蟹柳'], id: 'xiebliudan' },
     { keywords: ['经典鸡排'], id: 'jingdianpai' },
-    { keywords: ['安格斯牛肉','安格斯三明治'], id: 'angesiniu' },
+    { keywords: ['安格斯牛肉','安格斯'], id: 'angesiniu' },
     { keywords: ['芋泥鸡排'], id: 'yunijipai' },
     { keywords: ['低脂鸡丝','鸡丝贡菜'], id: 'dizhijisi' },
-    { keywords: ['日式厚切猪扒','厚切猪扒','猪扒三明治'], id: 'rishi_zhu' },
+    { keywords: ['日式厚切猪扒','厚切猪扒','猪扒'], id: 'rishi_zhu' },
     { keywords: ['奶酪芋泥血糯米','芋泥血糯米'], id: 'nalao_yuni' },
     { keywords: ['奶冻抹茶','抹茶血糯米'], id: 'naidong_mocha' },
     { keywords: ['蓝莓啵啵'], id: 'lannmei_boba' },
     { keywords: ['麻薯草莓','草莓麻薯'], id: 'mochi_strawberry' },
     { keywords: ['茉莉青提','青提奶酪'], id: 'moligingtip' },
     { keywords: ['芒果芋泥','芒果血糯米'], id: 'mango_yuni' },
-    { keywords: ['泰式芒果','椰椰三明治'], id: 'thai_mango' },
+    { keywords: ['泰式芒果','椰椰'], id: 'thai_mango' },
     { keywords: ['蓝莓甜橘','甜橘奶酪'], id: 'blueberry_tangerine' },
     { keywords: ['杨枝甘露'], id: 'yangzhi_ganluo' },
     { keywords: ['五谷丰登'], id: 'wugu_fengdeng' },
   ]
 
   function matchByAlias(name) {
-    const clean = name.replace(/三明治|默认|备注|\s/g, '')
+    // 去掉空格和噪音字符后匹配
+    const n = name.replace(/\s+/g, '').replace(/三明治|默认|备注/g, '')
     for (const alias of ALIAS_MAP) {
       for (const kw of alias.keywords) {
-        if (clean.includes(kw.replace(/三明治|\s/g,'')) || name.includes(kw)) {
-          return PRODUCTS.find(p => p.id === alias.id)
-        }
+        const k = kw.replace(/\s+/g, '')
+        if (n.includes(k) || k.includes(n)) return PRODUCTS.find(p => p.id === alias.id)
       }
     }
     return fuzzyMatchProduct(name)
@@ -868,44 +874,29 @@ function parseOcrText(text) {
     else orders.push({ id: product.id, name: product.name, qty })
   }
 
-  const rawLines = text.split(/\n/).map(l => l.trim()).filter(Boolean)
   const orders = []
+  // 按行处理清洗后的文字
+  const rawLines = cleaned.split('\n').map(l => l.trim()).filter(Boolean)
 
-  // 策略1：同一行「产品名...x2」
   rawLines.forEach(line => {
-    const m = line.match(/[xX×]\s*(\d+)\s*$/) || line.match(/(\d+)\s*份\s*$/)
+    // 数量格式：x2 X2 ×2 x 2（大小写、全半角、有无空格）
+    const m = line.match(/[xX×]\s*(\d+)\s*$/i) || line.match(/(\d+)\s*份\s*$/)
     if (!m) return
     const qty = parseInt(m[1])
-    const name = line.replace(/[xX×]\s*\d+\s*$/, '').replace(/\d+\s*份\s*$/, '')
-      .replace(/[|｜·•]/g, '').replace(/默认|备注/g, '').trim()
+    if (qty <= 0 || qty > 99) return
+    // 去掉数量、竖线分隔符、默认备注
+    const name = line
+      .replace(/[xX×]\s*\d+\s*$/i, '')
+      .replace(/\d+\s*份\s*$/, '')
+      .replace(/\s*[|｜]\s*默认.*$/, '')
+      .replace(/\s*默认.*$/, '')
+      .trim()
     if (name.length >= 2) addOrder(orders, matchByAlias(name), qty)
   })
 
-  // 策略2：数量单独在下一行
-  if (!orders.length) {
-    for (let i = 0; i < rawLines.length - 1; i++) {
-      const m = rawLines[i+1].match(/^[xX×]\s*(\d+)$/) || rawLines[i+1].match(/^(\d+)$/)
-      if (!m) continue
-      const qty = parseInt(m[1])
-      if (qty < 1 || qty > 99) continue
-      const name = rawLines[i].replace(/[|｜·•默认备注]/g, '').trim()
-      if (name.length >= 2) addOrder(orders, matchByAlias(name), qty)
-    }
-  }
-
-  // 策略3：整段文字正则扫描「中文词 x数字」
-  if (!orders.length) {
-    const re = /([\u4e00-\u9fa5]{2,15})[\s\S]{0,5}?[xX×]\s*(\d+)/g
-    let m
-    while ((m = re.exec(text)) !== null) {
-      const qty = parseInt(m[2])
-      addOrder(orders, matchByAlias(m[1]), qty)
-    }
-  }
-
   if (!orders.length) {
     document.getElementById('ocr-status').innerHTML =
-      '<span style="color:var(--red)">未识别到产品，请查看上方原始文字确认识别内容</span>'
+      `<span style="color:var(--red)">未识别到产品，识别内容：${cleaned.slice(0,100)}</span>`
     return
   }
   showOcrResult({ orders })
