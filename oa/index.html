@@ -401,9 +401,9 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
         <div class="page-title">设置</div>
       </div>
 
-      <!-- Claude API Key 设置 -->
+      <!-- 方舟 API Key 设置（图片识别用） -->
       <div class="box">
-        <div class="box-header">Claude AI 识别配置（图片识别备货单）</div>
+        <div class="box-header">AI 识别配置（图片识别备货单）</div>
         <div class="box-body">
           <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px">
             <div class="feieyun-status">
@@ -412,11 +412,11 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
             </div>
           </div>
           <div style="margin-bottom:12px">
-            <label class="label">Anthropic API Key</label>
-            <input class="input" id="claude-apikey" type="password" placeholder="sk-ant-..." oninput="saveClaudeConfig()">
+            <label class="label">方舟平台 API Key</label>
+            <input class="input" id="claude-apikey" type="password" placeholder="输入方舟平台 API Key" oninput="saveClaudeConfig()">
           </div>
           <div style="font-size:11px;color:#888">
-            在 <a href="https://console.anthropic.com" target="_blank" style="color:var(--green)">console.anthropic.com</a> 获取 API Key。
+            识别模型：<b>glm-4.6v</b>（智谱视觉）· 接口地址：api.aiyungc.cn/v1<br>
             Key 仅保存在本地浏览器，不会上传到任何服务器。
           </div>
         </div>
@@ -1297,7 +1297,7 @@ function renderNutrition() {
   }).join('')
 }
 
-// ── Claude API Key 配置 ──
+// ── 方舟 API Key 配置（图片识别用） ──
 function saveClaudeConfig() {
   const key = document.getElementById('claude-apikey').value.trim()
   localStorage.setItem('claude_apikey', key)
@@ -1309,12 +1309,12 @@ function updateClaudeStatus() {
   const dot = document.getElementById('claude-dot')
   const text = document.getElementById('claude-status-text')
   if (dot && text) {
-    if (key.startsWith('sk-ant-')) {
+    if (key.length > 10) {
       dot.className = 'status-dot dot-green'
-      text.textContent = '已配置'
+      text.textContent = '已配置 · glm-4.6v'
     } else {
       dot.className = 'status-dot dot-gray'
-      text.textContent = '未配置（请填写 API Key）'
+      text.textContent = '未配置（请填写方舟 API Key）'
     }
   }
 }
@@ -1327,8 +1327,8 @@ function handleOcrUpload(event) {
   if (!file) return
 
   const apiKey = localStorage.getItem('claude_apikey') || ''
-  if (!apiKey.startsWith('sk-ant-')) {
-    showToast('请先在「设置」页配置 Claude API Key', 'error', 4000)
+  if (!apiKey || apiKey.length <= 10) {
+    showToast('请先在「设置」页配置方舟 API Key', 'error', 4000)
     switchPage('settings')
     return
   }
@@ -1348,7 +1348,6 @@ function handleOcrUpload(event) {
 }
 
 async function recognizeOrder(base64, mediaType, apiKey) {
-  // 产品名称列表，给AI参考
   const productNames = PRODUCTS.map(p => p.name).join('、')
 
   const prompt = `你是一个餐厅备货单识别助手。请识别图片中的订单信息，提取出每个产品的名称和数量。
@@ -1357,37 +1356,28 @@ async function recognizeOrder(base64, mediaType, apiKey) {
 ${productNames}
 
 请以JSON格式返回结果，格式如下：
-{
-  "orders": [
-    {"name": "产品名称", "qty": 数量},
-    ...
-  ],
-  "note": "备注（如有无法识别的内容）"
-}
+{"orders":[{"name":"产品名称","qty":数量}],"note":"备注"}
 
-注意：
-1. 只返回JSON，不要其他文字
-2. 产品名称尽量匹配系统产品列表中的名称
-3. 如果图片中有相似但不完全匹配的名称，也尽量对应到最接近的系统产品
-4. 数量必须是整数`
+注意：只返回JSON，不要其他文字；产品名称尽量匹配系统产品列表；数量必须是整数。`
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://api.aiyungc.cn/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'glm-4.6v',
         max_tokens: 1000,
         messages: [{
           role: 'user',
           content: [
             {
-              type: 'image',
-              source: { type: 'base64', media_type: mediaType, data: base64 }
+              type: 'image_url',
+              image_url: {
+                url: `data:${mediaType};base64,${base64}`
+              }
             },
             { type: 'text', text: prompt }
           ]
@@ -1401,17 +1391,14 @@ ${productNames}
     }
 
     const data = await res.json()
-    const text = data.content?.[0]?.text || ''
-
-    // 解析JSON（清洗 markdown 代码块）
+    const text = data.choices?.[0]?.message?.content || ''
     const cleaned = text.replace(/```json|```/g, '').trim()
     const parsed = JSON.parse(cleaned)
-
     showOcrResult(parsed)
   } catch (err) {
     document.getElementById('ocr-status').innerHTML =
       `<span style="color:var(--red)">❌ 识别失败：${err.message}</span>`
-    showToast('识别失败，请检查图片或API Key', 'error')
+    showToast('识别失败，请检查图片或 API Key', 'error')
   }
 }
 
