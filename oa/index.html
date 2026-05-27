@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>莱珂珍妮 OA · 内部系统</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+SC:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -491,15 +490,20 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
       <div class="box">
         <div class="box-header">AI 识别配置</div>
         <div class="box-body">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-            <div class="status-dot dot-green"></div>
-            <span style="font-size:12px;font-weight:700;color:var(--green)">已启用 · Tesseract.js 本地OCR</span>
+          <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px">
+            <div class="feieyun-status">
+              <div class="status-dot" id="ai-dot" style="background:var(--gray2)"></div>
+              <span id="ai-status-text">未配置</span>
+            </div>
           </div>
-          <div style="font-size:11px;color:#888;line-height:1.8">
-            图片识别在浏览器本地运行，<b>无需 API Key，完全免费</b>。<br>
-            首次识别需下载语言包（约 10MB），之后速度更快。<br>
-            建议上传清晰截图，识别准确率更高。
+          <div style="margin-bottom:12px">
+            <label class="label">方舟平台 API Key</label>
+            <input class="input" id="s-fangzhou-key" type="password" placeholder="输入方舟平台 API Key">
           </div>
+          <div style="font-size:11px;color:#888;margin-bottom:12px">
+            识别模型：<b>qwen3-vl-flash</b> · 接口：api.aiyungc.cn/v1
+          </div>
+          <button class="btn btn-black" onclick="saveSettings()">保存配置</button>
         </div>
       </div>
 
@@ -679,15 +683,23 @@ async function loadSettings() {
   const { data } = await sb.from('oa_settings').select('*').eq('id', 1).single()
   if (data) {
     oaSettings = data
+    if (data.fangzhou_api_key) document.getElementById('s-fangzhou-key').value = data.fangzhou_api_key
     if (data.feie_appid)  document.getElementById('s-feie-appid').value  = data.feie_appid
     if (data.feie_appkey) document.getElementById('s-feie-appkey').value = data.feie_appkey
     if (data.feie_sn)     document.getElementById('s-feie-sn').value     = data.feie_sn
     if (data.feie_key)    document.getElementById('s-feie-key').value    = data.feie_key
+    const dot = document.getElementById('ai-dot')
+    const txt = document.getElementById('ai-status-text')
+    if (dot && txt) {
+      if (data.fangzhou_api_key) { dot.className = 'status-dot dot-green'; txt.textContent = '已配置 · qwen3-vl-flash' }
+      else { dot.className = 'status-dot dot-gray'; txt.textContent = '未配置' }
+    }
   }
 }
 
 async function saveSettings() {
   const updates = {
+    fangzhou_api_key: document.getElementById('s-fangzhou-key').value.trim() || null,
     feie_appid:  document.getElementById('s-feie-appid').value.trim()  || null,
     feie_appkey: document.getElementById('s-feie-appkey').value.trim() || null,
     feie_sn:     document.getElementById('s-feie-sn').value.trim()     || null,
@@ -782,37 +794,76 @@ function showToast(msg, type='info', duration=3000) {
 }
 
 // ══════════════════════════════════════════════
-// 图片识别 OCR（Tesseract.js 本地识别，无需 API）
+// 图片识别 OCR（qwen3-vl-flash 大模型识别）
 // ══════════════════════════════════════════════
 function handleOcrUpload(event) {
   const file = event.target.files[0]
   if (!file) return
+  const apiKey = oaSettings.fangzhou_api_key
+  if (!apiKey) {
+    showToast('请联系管理员在设置页配置 API Key', 'error', 4000)
+    return
+  }
   const reader = new FileReader()
   reader.onload = e => {
     document.getElementById('ocr-preview').style.display = 'block'
     document.getElementById('ocr-img').src = e.target.result
-    document.getElementById('ocr-status').innerHTML = '⏳ 识别中，请稍候…'
+    document.getElementById('ocr-status').innerHTML = '🔍 识别中，请稍候…'
     document.getElementById('ocr-result-list').innerHTML = ''
     document.getElementById('ocr-actions').style.display = 'none'
-    runTesseract(e.target.result)
+    const base64 = e.target.result.split(',')[1]
+    const mediaType = file.type || 'image/jpeg'
+    recognizeWithQwen(base64, mediaType, apiKey)
   }
   reader.readAsDataURL(file)
 }
 
-async function runTesseract(imageSrc) {
+async function recognizeWithQwen(base64, mediaType, apiKey) {
+  const productNames = PRODUCTS.map(p => p.name).join('、')
+  const prompt = `请识别图片中的备货单，提取产品名称和数量。
+系统已有产品：${productNames}
+请严格按以下JSON格式返回，不要输出其他内容：
+{"orders":[{"name":"产品名","qty":数量}]}
+产品名尽量匹配系统已有产品名，数量为整数。`
+
   try {
-    document.getElementById('ocr-status').innerHTML = '⏳ 加载识别引擎…'
-    const worker = await Tesseract.createWorker('chi_sim+eng', 1, {
-      logger: m => {
-        if (m.status === 'recognizing text') {
-          const pct = Math.round(m.progress * 100)
-          document.getElementById('ocr-status').innerHTML = `⏳ 识别中 ${pct}%…`
-        }
-      }
+    const res = await fetch('https://api.aiyungc.cn/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'qwen3-vl-flash',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image_url', image_url: { url: `data:${mediaType};base64,${base64}` } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
     })
-    const { data: { text } } = await worker.recognize(imageSrc)
-    await worker.terminate()
-    parseOcrText(text)
+
+    if (!res.ok) throw new Error(`请求失败 ${res.status}: ${await res.text()}`)
+    const data = await res.json()
+    const text = data.choices?.[0]?.message?.content || ''
+
+    // 解析JSON，多重容错
+    let parsed = null
+    const attempts = [
+      () => JSON.parse(text),
+      () => JSON.parse(text.replace(/```json|```/g, '').trim()),
+      () => { const m = text.match(/\{[\s\S]*\}/); return m ? JSON.parse(m[0]) : null },
+      () => { const m = text.match(/\{[\s\S]*?\}/); return m ? JSON.parse(m[0]) : null },
+    ]
+    for (const attempt of attempts) {
+      try { parsed = attempt(); if (parsed?.orders) break } catch(e) {}
+    }
+
+    if (!parsed?.orders?.length) throw new Error('未识别到产品，请检查图片')
+    showOcrResult(parsed)
   } catch (err) {
     document.getElementById('ocr-status').innerHTML =
       `<span style="color:var(--red)">❌ 识别失败：${err.message}</span>`
