@@ -4,58 +4,65 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>莱珂珍妮 OA · 内部系统</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+SC:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
   --black:#0A0A0A;--white:#F5F5F0;--green:#2ECC71;--yellow:#FFD600;
-  --red:#FF3333;--gray:#E8E8E4;--gray2:#D0D0CA;--border:2px solid #0A0A0A;
-  --orange:#FF5500;
+  --red:#FF3333;--gray:#E8E8E4;--gray2:#D0D0CA;--orange:#FF5500;
 }
 html{scroll-behavior:smooth}
 body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Space Grotesk',sans-serif;min-height:100vh}
-.font-display{font-family:'Bebas Neue',sans-serif}
 
-/* ── 登录页 ── */
-#login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--black)}
-.login-box{width:100%;max-width:360px;padding:0 20px}
-.login-logo{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--white);letter-spacing:.06em;margin-bottom:6px}
-.login-sub{font-size:10px;font-weight:700;letter-spacing:.3em;color:var(--green);text-transform:uppercase;margin-bottom:32px}
-.login-input{width:100%;padding:14px 16px;background:transparent;border:2px solid #333;color:var(--white);font-size:14px;font-family:inherit;outline:none;transition:border-color .15s;margin-bottom:12px}
-.login-input:focus{border-color:var(--green)}
-.login-input::placeholder{color:#555}
-.login-btn{width:100%;background:var(--green);color:var(--black);border:2px solid var(--green);padding:14px;font-size:13px;font-weight:900;letter-spacing:.1em;cursor:pointer;transition:all .15s;font-family:inherit}
-.login-btn:hover{background:var(--yellow);border-color:var(--yellow)}
+/* ── 认证页（登录/注册） ── */
+#auth-page{display:flex;min-height:100vh;background:var(--black)}
+.auth-brand{width:320px;flex-shrink:0;padding:48px 36px;display:flex;flex-direction:column;justify-content:space-between;border-right:2px solid #1a1a1a}
+.auth-brand-logo{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--white);letter-spacing:.06em;line-height:1}
+.auth-brand-sub{font-size:10px;font-weight:700;letter-spacing:.3em;color:var(--green);text-transform:uppercase;margin-top:6px}
+.auth-brand-desc{font-size:12px;color:#555;line-height:1.9;margin-top:32px}
+.auth-brand-foot{font-size:10px;color:#333;letter-spacing:.05em}
+.auth-form-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px}
+.auth-box{width:100%;max-width:380px}
+.auth-tabs{display:flex;border:2px solid #333;margin-bottom:28px}
+.auth-tab{flex:1;padding:11px;text-align:center;font-size:12px;font-weight:700;letter-spacing:.06em;color:#555;cursor:pointer;transition:all .15s;border-right:1px solid #333}
+.auth-tab:last-child{border-right:none}
+.auth-tab.active{background:var(--green);color:var(--black)}
+.auth-title{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--white);letter-spacing:.04em;margin-bottom:4px}
+.auth-subtitle{font-size:12px;color:#555;margin-bottom:24px}
+.auth-label{font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#666;display:block;margin-bottom:6px}
+.auth-input{width:100%;padding:13px 14px;background:transparent;border:2px solid #333;color:var(--white);font-size:13px;font-family:inherit;outline:none;transition:border-color .15s;margin-bottom:14px}
+.auth-input:focus{border-color:var(--green)}
+.auth-input::placeholder{color:#444}
+.auth-btn{width:100%;background:var(--green);color:var(--black);border:2px solid var(--green);padding:13px;font-size:13px;font-weight:900;letter-spacing:.1em;cursor:pointer;transition:all .15s;font-family:inherit;margin-top:4px}
+.auth-btn:hover{background:var(--yellow);border-color:var(--yellow)}
+.auth-btn:disabled{opacity:.4;cursor:not-allowed}
+.auth-err{font-size:11px;color:var(--red);margin-top:8px;min-height:16px}
+.auth-note{font-size:11px;color:#444;margin-top:14px;line-height:1.7;padding:10px 12px;border:1px solid #222}
 
 /* ── 主框架 ── */
 #app{display:none;flex-direction:column;min-height:100vh}
-/* 顶部 */
-.topbar{background:var(--black);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100;border-bottom:2px solid #222}
+.topbar{background:var(--black);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100;border-bottom:2px solid #1a1a1a}
 .topbar-logo{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--white);letter-spacing:.06em}
 .topbar-logo span{color:var(--green)}
 .topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-user{font-size:11px;color:#555;font-weight:700;border:1px solid #222;padding:4px 10px}
 .topbar-badge{font-size:9px;font-weight:700;letter-spacing:.2em;color:var(--green);border:1px solid #333;padding:3px 8px;text-transform:uppercase}
-.topbar-logout{font-size:11px;color:#555;cursor:pointer;border:1px solid #333;padding:4px 10px;transition:all .15s;font-weight:700}
+.topbar-logout{font-size:11px;color:#555;cursor:pointer;border:1px solid #333;padding:4px 10px;transition:all .15s;font-weight:700;background:transparent;font-family:inherit}
 .topbar-logout:hover{color:var(--red);border-color:var(--red)}
-
-/* 导航 */
 .navbar{background:var(--black);border-bottom:2px solid #1a1a1a;display:flex;overflow-x:auto;scrollbar-width:none}
 .navbar::-webkit-scrollbar{display:none}
-.nav-btn{flex-shrink:0;padding:10px 20px;font-size:12px;font-weight:700;letter-spacing:.06em;color:#555;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s;white-space:nowrap;border-right:1px solid #1a1a1a}
+.nav-btn{flex-shrink:0;padding:10px 20px;font-size:12px;font-weight:700;letter-spacing:.06em;color:#555;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s;white-space:nowrap;border-right:1px solid #1a1a1a;background:transparent;font-family:inherit}
 .nav-btn:hover{color:#888}
 .nav-btn.active{color:var(--green);border-bottom-color:var(--green)}
-
-/* 内容区 */
 .content{flex:1;padding:20px;max-width:1000px;margin:0 auto;width:100%}
 
-/* ── 页面通用 ── */
-.page{display:none}
-.page.active{display:block}
-.page-header{margin-bottom:20px}
+/* ── 页面 ── */
+.page{display:none}.page.active{display:block}
 .page-eyebrow{font-size:9px;font-weight:700;letter-spacing:.3em;color:var(--gray2);text-transform:uppercase;margin-bottom:6px}
-.page-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.04em}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.04em;margin-bottom:20px}
 
-/* ── 卡片/盒子 ── */
+/* ── 盒子/卡片 ── */
 .box{border:2px solid var(--black);background:var(--white);margin-bottom:16px}
 .box-header{padding:10px 16px;border-bottom:2px solid var(--black);font-size:10px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;background:var(--black);color:var(--white)}
 .box-header.green{background:var(--green);color:var(--black)}
@@ -63,16 +70,11 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
 .box-body{padding:16px}
 
 /* ── 按钮 ── */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;font-size:12px;font-weight:700;letter-spacing:.06em;border:2px solid var(--black);cursor:pointer;transition:all .15s;font-family:inherit;text-transform:uppercase}
-.btn-black{background:var(--black);color:var(--white)}
-.btn-black:hover{background:var(--green);color:var(--black);border-color:var(--green)}
-.btn-green{background:var(--green);color:var(--black);border-color:var(--green)}
-.btn-green:hover{background:var(--yellow);border-color:var(--yellow)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;font-size:12px;font-weight:700;letter-spacing:.06em;border:2px solid var(--black);cursor:pointer;transition:all .15s;font-family:inherit;text-transform:uppercase;background:transparent}
+.btn-black{background:var(--black);color:var(--white)}.btn-black:hover{background:var(--green);color:var(--black);border-color:var(--green)}
+.btn-green{background:var(--green);color:var(--black);border-color:var(--green)}.btn-green:hover{background:var(--yellow);border-color:var(--yellow)}
 .btn-yellow{background:var(--yellow);color:var(--black);border-color:var(--yellow)}
-.btn-yellow:hover{background:#f5c000}
-.btn-red{background:var(--red);color:var(--white);border-color:var(--red)}
-.btn-ghost{background:transparent;color:var(--black)}
-.btn-ghost:hover{background:var(--gray)}
+.btn-ghost{background:transparent;color:var(--black)}.btn-ghost:hover{background:var(--gray)}
 .btn-sm{padding:6px 12px;font-size:10px}
 .btn:disabled{opacity:.4;cursor:not-allowed}
 
@@ -88,11 +90,10 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
 /* ── 输入框 ── */
 .input{width:100%;padding:10px 14px;border:2px solid var(--black);background:var(--white);font-size:13px;font-family:inherit;outline:none;transition:border-color .15s}
 .input:focus{border-color:var(--green)}
-.input-sm{padding:6px 10px;font-size:12px}
 .label{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;display:block}
 
 /* ── 数量输入器 ── */
-.qty-ctrl{display:flex;align-items:center;gap:0;border:2px solid var(--black)}
+.qty-ctrl{display:flex;align-items:center;border:2px solid var(--black)}
 .qty-btn{width:32px;height:32px;background:var(--black);color:var(--white);border:none;font-size:16px;cursor:pointer;transition:background .1s;flex-shrink:0}
 .qty-btn:hover{background:var(--green);color:var(--black)}
 .qty-input{width:48px;border:none;border-left:1px solid var(--black);border-right:1px solid var(--black);text-align:center;font-size:14px;font-weight:700;padding:4px 0;outline:none;font-family:inherit}
@@ -100,36 +101,15 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
 /* ── 徽标 ── */
 .badge{display:inline-block;font-size:9px;font-weight:900;letter-spacing:.1em;padding:2px 7px;text-transform:uppercase}
 .badge-green{background:var(--green);color:var(--black)}
-.badge-red{background:var(--red);color:var(--white)}
-.badge-yellow{background:var(--yellow);color:var(--black)}
-.badge-gray{background:var(--gray);color:#666}
+.badge-admin{background:var(--yellow);color:var(--black)}
 
-/* ── 备料单 打印样式 ── */
-.prep-section{margin-bottom:20px}
-.prep-category{font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gray2);padding:8px 0 6px;border-bottom:2px solid var(--black);margin-bottom:8px}
-.prep-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray)}
-.prep-item:last-child{border-bottom:none}
-.prep-name{font-size:14px;font-weight:500}
-.prep-qty{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange)}
-.prep-unit{font-size:10px;color:var(--gray2);margin-left:2px}
-.prep-sub{font-size:10px;color:var(--gray2);margin-top:2px}
+/* ── 状态点 ── */
+.feieyun-status{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700}
+.status-dot{width:8px;height:8px;border-radius:50%}
+.dot-green{background:var(--green);box-shadow:0 0 6px var(--green)}
+.dot-gray{background:var(--gray2)}
 
-/* ── 响应式 ── */
-@media(max-width:640px){
-  .content{padding:12px}
-  .hide-mobile{display:none}
-}
-
-/* ── 打印 ── */
-@media print{
-  .topbar,.navbar,.no-print{display:none!important}
-  body{background:white}
-  .print-area{page-break-inside:avoid}
-  .prep-qty{font-size:18px}
-  .box{border:1px solid #ccc;margin-bottom:10px}
-}
-
-/* ── toast ── */
+/* ── Toast ── */
 .toast-container{position:fixed;top:60px;right:16px;z-index:999;display:flex;flex-direction:column;gap:8px}
 .toast{padding:12px 16px;border:2px solid var(--black);font-size:13px;font-weight:600;max-width:300px;animation:slideIn .2s ease}
 .toast-success{background:var(--green);color:var(--black)}
@@ -137,11 +117,36 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
 .toast-info{background:var(--black);color:var(--white)}
 @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
 
-/* ── 步骤样式 ── */
-.step-num{width:22px;height:22px;background:var(--black);color:var(--yellow);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;flex-shrink:0;margin-right:8px}
-.step-text{font-size:12px;color:#555;line-height:1.6}
+/* ── 备料单 ── */
+.prep-category{font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gray2);padding:8px 0 6px;border-bottom:2px solid var(--black);margin-bottom:8px}
+.prep-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray)}
+.prep-item:last-child{border-bottom:none}
+.prep-name{font-size:14px;font-weight:500}
+.prep-qty{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange)}
+.prep-unit{font-size:10px;color:var(--gray2);margin-left:2px}
+.prep-sub{font-size:10px;color:var(--gray2);margin-top:2px}
+.prep-section{margin-bottom:20px}
 
-/* 统计卡片 */
+/* ── 步骤 ── */
+.step-num{width:22px;height:22px;background:var(--black);color:var(--yellow);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;flex-shrink:0;margin-right:8px}
+
+/* ── 产品 ── */
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:0;border:2px solid var(--black)}
+.product-card{padding:14px;border-right:2px solid var(--black);border-bottom:2px solid var(--black)}
+.product-card:hover{background:var(--gray)}
+.product-name{font-weight:900;font-size:14px;margin-bottom:4px}
+
+/* ── 制作流程 ── */
+.recipe-card{border:2px solid var(--black);margin-bottom:12px}
+.recipe-header{background:var(--black);color:var(--white);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.recipe-header:hover{background:#1a1a1a}
+.recipe-body{display:none;padding:16px}
+.recipe-body.open{display:block}
+.recipe-section-title{font-size:9px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;color:var(--gray2);padding-bottom:4px;border-bottom:1px solid var(--gray);margin-bottom:8px}
+.step-item{display:flex;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--gray);font-size:12px;color:#444;line-height:1.6}
+.step-item:last-child{border-bottom:none}
+
+/* ── 统计 ── */
 .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:2px solid var(--black);margin-bottom:16px}
 .stat-item{padding:16px;border-right:2px solid var(--black);text-align:center}
 .stat-item:last-child{border-right:none}
@@ -149,124 +154,153 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
 .stat-num.green{color:var(--green)}
 .stat-label{font-size:9px;font-weight:700;letter-spacing:.2em;color:var(--gray2);text-transform:uppercase;margin-top:4px}
 
-/* 产品卡片网格 */
-.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:0;border:2px solid var(--black)}
-.product-card{padding:14px;border-right:2px solid var(--black);border-bottom:2px solid var(--black);cursor:default}
-.product-card:hover{background:var(--gray)}
-.product-name{font-weight:900;font-size:14px;margin-bottom:4px}
-.product-cat{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;padding:2px 6px;margin-bottom:8px;display:inline-block}
-.product-ingredients{font-size:11px;color:#666;line-height:1.7}
+/* ── OCR区域 ── */
+#ocr-zone{border:2px dashed var(--gray2);padding:16px;margin-bottom:16px;background:#fafaf8}
 
-/* 制作步骤 */
-.recipe-card{border:2px solid var(--black);margin-bottom:12px}
-.recipe-header{background:var(--black);color:var(--white);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
-.recipe-header:hover{background:#1a1a1a}
-.recipe-body{display:none;padding:16px}
-.recipe-body.open{display:block}
-.recipe-section{margin-bottom:12px}
-.recipe-section-title{font-size:9px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;color:var(--gray2);padding-bottom:4px;border-bottom:1px solid var(--gray);margin-bottom:8px}
-.step-list{space-y:6px}
-.step-item{display:flex;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--gray);font-size:12px;color:#444;line-height:1.6}
-.step-item:last-child{border-bottom:none}
-
-/* 订单录入 */
-.order-item{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--gray)}
+/* ── 订单录入 ── */
+.order-item{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--gray)}
 .order-item:last-child{border-bottom:none}
-.order-item-name{font-weight:700;font-size:13px}
-.order-item-kcal{font-size:10px;color:var(--gray2)}
 
-/* 备料结果 */
-.prep-result-bar{height:6px;background:var(--gray);margin-top:4px;position:relative;overflow:hidden}
-.prep-result-fill{position:absolute;top:0;left:0;height:100%;background:var(--orange);transition:width .4s ease}
-
-/* 历史记录 */
-.history-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--gray);cursor:pointer;transition:background .1s}
+/* ── 历史 ── */
+.history-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--gray);transition:background .1s}
 .history-item:last-child{border-bottom:none}
 .history-item:hover{background:var(--gray)}
-.history-date{font-weight:700;font-size:13px}
-.history-summary{font-size:11px;color:var(--gray2);margin-top:2px}
 .history-total{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--green)}
 
-/* 飞鹅设置 */
-.feieyun-status{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700}
-.status-dot{width:8px;height:8px;border-radius:50%}
-.dot-green{background:var(--green);box-shadow:0 0 6px var(--green)}
-.dot-gray{background:var(--gray2)}
-.dot-red{background:var(--red)}
+/* ── 员工管理（管理员专用） ── */
+.user-row{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--gray)}
+.user-row:last-child{border-bottom:none}
+.user-row:hover{background:var(--gray)}
+
+/* 底部状态栏 */
+.statusbar{background:var(--black);border-top:2px solid var(--black);height:28px;display:flex;align-items:center;padding:0 20px;gap:16px;font-size:9px;font-weight:700;letter-spacing:.15em;flex-shrink:0}
+
+/* 打印 */
+@media print{
+  .topbar,.navbar,.no-print{display:none!important}
+  body{background:white}
+}
+
+/* 响应式 */
+@media(max-width:640px){
+  .content{padding:12px}
+  .auth-brand{display:none}
+  .stat-grid{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
 
-<!-- Toast容器 -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- ── 登录页 ── -->
-<div id="login-page">
-  <div class="login-box">
-    <div class="login-logo">莱珂珍妮</div>
-    <div class="login-sub">OA · 内部管理系统</div>
-    <input class="login-input" type="password" id="loginPwd" placeholder="请输入访问密码" onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="login-btn" onclick="doLogin()">进入系统 →</button>
+<!-- ══════════════════════════════════════
+  认证页（登录/注册）
+══════════════════════════════════════ -->
+<div id="auth-page">
+  <div class="auth-brand">
+    <div>
+      <div class="auth-brand-logo">莱珂珍妮</div>
+      <div class="auth-brand-sub">OA · 内部管理系统</div>
+      <div class="auth-brand-desc">
+        产品手册 · 制作流程<br>
+        营养热量 · 备料计算<br>
+        飞鹅打印 · 历史记录
+      </div>
+    </div>
+    <div class="auth-brand-foot">© 2026 河南盛塬宏品牌管理有限责任公司</div>
+  </div>
+
+  <div class="auth-form-wrap">
+    <div class="auth-box">
+      <!-- Tab -->
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">登 录</div>
+        <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">注 册</div>
+      </div>
+
+      <!-- 登录 -->
+      <div id="form-login">
+        <div class="auth-title">欢迎回来</div>
+        <div class="auth-subtitle">登录你的员工账号</div>
+        <label class="auth-label">邮箱</label>
+        <input class="auth-input" id="login-email" type="email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doLogin()">
+        <label class="auth-label">密码</label>
+        <input class="auth-input" id="login-pwd" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="auth-btn" id="login-btn" onclick="doLogin()">登录 →</button>
+        <div class="auth-err" id="login-err"></div>
+      </div>
+
+      <!-- 注册 -->
+      <div id="form-register" style="display:none">
+        <div class="auth-title">申请账号</div>
+        <div class="auth-subtitle">注册后需等待管理员审核开通</div>
+        <label class="auth-label">姓名</label>
+        <input class="auth-input" id="reg-name" type="text" placeholder="你的名字">
+        <label class="auth-label">邮箱</label>
+        <input class="auth-input" id="reg-email" type="email" placeholder="your@email.com">
+        <label class="auth-label">密码</label>
+        <input class="auth-input" id="reg-pwd" type="password" placeholder="至少6位">
+        <button class="auth-btn" id="reg-btn" onclick="doRegister()">提交注册 →</button>
+        <div class="auth-err" id="reg-err"></div>
+        <div class="auth-note">注册后账号需由管理员审核激活，激活后方可登录使用系统。</div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- ── 主应用 ── -->
+<!-- ══════════════════════════════════════
+  主应用
+══════════════════════════════════════ -->
 <div id="app">
-  <!-- 顶部栏 -->
   <div class="topbar">
     <div class="topbar-logo">莱珂珍妮 <span>OA</span></div>
     <div class="topbar-right">
-      <div class="topbar-badge">INTERNAL SYSTEM</div>
-      <div class="topbar-logout" onclick="doLogout()">退出</div>
+      <div class="topbar-badge" id="topbar-role">STAFF</div>
+      <div class="topbar-user" id="topbar-user"></div>
+      <button class="topbar-logout" onclick="doLogout()">退出</button>
     </div>
   </div>
 
-  <!-- 导航 -->
-  <div class="navbar">
-    <div class="nav-btn active" onclick="switchPage('prep')">📋 备料计算</div>
-    <div class="nav-btn" onclick="switchPage('products')">🥗 产品手册</div>
-    <div class="nav-btn" onclick="switchPage('recipes')">👨‍🍳 制作流程</div>
-    <div class="nav-btn" onclick="switchPage('nutrition')">📊 营养热量</div>
-    <div class="nav-btn" onclick="switchPage('history')">📁 历史记录</div>
-    <div class="nav-btn" onclick="switchPage('settings')">⚙️ 设置</div>
+  <div class="navbar" id="main-navbar">
+    <button class="nav-btn active" onclick="switchPage('prep',this)">📋 备料计算</button>
+    <button class="nav-btn" onclick="switchPage('products',this)">🥗 产品手册</button>
+    <button class="nav-btn" onclick="switchPage('recipes',this)">👨‍🍳 制作流程</button>
+    <button class="nav-btn" onclick="switchPage('nutrition',this)">📊 营养热量</button>
+    <button class="nav-btn" onclick="switchPage('history',this)">📁 历史记录</button>
+    <!-- 管理员专属，默认隐藏 -->
+    <button class="nav-btn" id="nav-users" style="display:none" onclick="switchPage('users',this)">👥 员工管理</button>
+    <button class="nav-btn" id="nav-settings" style="display:none" onclick="switchPage('settings',this)">⚙️ 设置</button>
   </div>
 
-  <!-- 内容区 -->
   <div class="content">
 
-    <!-- ── 备料计算页 ── -->
+    <!-- ── 备料计算 ── -->
     <div class="page active" id="page-prep">
-      <div class="page-header">
-        <div class="page-eyebrow">Daily Prep · 今日备料</div>
-        <div class="page-title">备料计算</div>
-      </div>
+      <div class="page-eyebrow">Daily Prep · 今日备料</div>
+      <div class="page-title">备料计算</div>
 
-      <!-- 订单录入 -->
       <div class="box">
         <div class="box-header">第一步 · 录入订单数量</div>
         <div class="box-body">
-
-          <!-- 图片识别入口 -->
-          <div id="ocr-zone" style="border:2px dashed var(--gray2);padding:16px;margin-bottom:16px;background:#fafaf8">
+          <!-- OCR上传区 -->
+          <div id="ocr-zone">
             <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px">
               <div>
                 <div style="font-size:12px;font-weight:700;margin-bottom:2px">📷 上传备货单图片自动识别</div>
-                <div style="font-size:11px;color:#888">支持美团/饿了么/自建系统的备货单截图，AI自动解析产品和数量</div>
+                <div style="font-size:11px;color:#888">支持美团/饿了么备货单截图，AI自动解析产品和数量</div>
               </div>
-              <label id="ocr-upload-label" style="cursor:pointer">
+              <label style="cursor:pointer">
                 <input type="file" id="ocr-file" accept="image/*" style="display:none" onchange="handleOcrUpload(event)">
                 <div class="btn btn-black btn-sm">选择图片</div>
               </label>
             </div>
-
-            <!-- 预览+状态区 -->
             <div id="ocr-preview" style="display:none">
               <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
                 <img id="ocr-img" style="max-height:160px;max-width:200px;border:2px solid var(--black);flex-shrink:0" src="">
                 <div style="flex:1;min-width:200px">
-                  <div id="ocr-status" style="font-size:12px;color:#888;margin-bottom:8px">等待识别…</div>
+                  <div id="ocr-status" style="font-size:12px;color:#888;margin-bottom:8px"></div>
                   <div id="ocr-result-list" style="font-size:12px;line-height:2"></div>
-                  <div id="ocr-actions" style="display:none;margin-top:10px;display:flex;gap:8px">
+                  <div id="ocr-actions" style="display:none;margin-top:10px;gap:8px" class="no-print">
                     <button class="btn btn-green btn-sm" onclick="applyOcrResult()">✓ 应用识别结果</button>
                     <button class="btn btn-ghost btn-sm" onclick="resetOcr()">重新上传</button>
                   </div>
@@ -275,7 +309,6 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
             </div>
           </div>
 
-          <!-- 分割线 -->
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
             <div style="flex:1;height:1px;background:var(--gray)"></div>
             <div style="font-size:10px;font-weight:700;color:var(--gray2);letter-spacing:.2em">或手动录入</div>
@@ -285,12 +318,11 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
             <div style="font-size:12px;color:#666">点击 ＋／－ 录入各款销售数量</div>
             <div style="display:flex;gap:8px">
-              <button class="btn btn-ghost btn-sm" onclick="clearAllQty()">清空重置</button>
+              <button class="btn btn-ghost btn-sm" onclick="clearAllQty()">清空</button>
               <button class="btn btn-black btn-sm" onclick="calcPrep()">生成备料单 →</button>
             </div>
           </div>
           <div id="order-list"></div>
-          <!-- 合计 -->
           <div style="border-top:2px solid var(--black);margin-top:12px;padding-top:12px;display:flex;align-items:center;justify-content:space-between">
             <div style="font-size:12px;font-weight:700">合计份数</div>
             <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--green)" id="total-qty">0</div>
@@ -298,12 +330,10 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
         </div>
       </div>
 
-      <!-- 备料结果 -->
       <div id="prep-result" style="display:none">
         <div class="box">
           <div class="box-header yellow">第二步 · 备料清单</div>
           <div class="box-body">
-            <!-- 备料单头部信息 -->
             <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
               <div>
                 <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1">莱珂珍妮备料单</div>
@@ -311,33 +341,28 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
               </div>
               <div style="display:flex;gap:8px" class="no-print">
                 <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 打印</button>
-                <button class="btn btn-black btn-sm" id="feie-btn" onclick="printFeieyun()">📟 飞鹅打印</button>
+                <button class="btn btn-black btn-sm" onclick="printFeieyun()">📟 飞鹅打印</button>
               </div>
             </div>
-            <!-- 订单摘要 -->
             <div style="border:2px solid var(--black);padding:10px 14px;margin-bottom:16px;background:var(--gray)">
               <div style="font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:6px">本单产品</div>
               <div id="order-summary" style="font-size:12px;line-height:2"></div>
             </div>
-            <!-- 备料表按分类 -->
             <div id="prep-table"></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ── 产品手册页 ── -->
+    <!-- ── 产品手册 ── -->
     <div class="page" id="page-products">
-      <div class="page-header">
-        <div class="page-eyebrow">Product Manual · 产品手册</div>
-        <div class="page-title">全系列产品总览</div>
-      </div>
+      <div class="page-eyebrow">Product Manual</div>
+      <div class="page-title">全系列产品总览</div>
       <div class="stat-grid">
         <div class="stat-item"><div class="stat-num green">17</div><div class="stat-label">产品款式</div></div>
         <div class="stat-item"><div class="stat-num">4</div><div class="stat-label">产品系列</div></div>
         <div class="stat-item"><div class="stat-num">298</div><div class="stat-label">最低热量 kcal</div></div>
       </div>
-      <!-- 系列筛选 -->
       <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
         <button class="btn btn-black btn-sm" onclick="filterProducts('all',this)">全部</button>
         <button class="btn btn-ghost btn-sm" onclick="filterProducts('咸鲜',this)">🥩 咸鲜</button>
@@ -348,736 +373,595 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
       <div class="product-grid" id="product-grid"></div>
     </div>
 
-    <!-- ── 制作流程页 ── */-->
+    <!-- ── 制作流程 ── -->
     <div class="page" id="page-recipes">
-      <div class="page-header">
-        <div class="page-eyebrow">Standard Recipe · 标准流程</div>
-        <div class="page-title">制作流程</div>
-      </div>
-      <div style="font-size:12px;color:#666;margin-bottom:16px">点击产品名展开/收起制作步骤</div>
+      <div class="page-eyebrow">Standard Recipe</div>
+      <div class="page-title">制作流程</div>
       <div id="recipe-list"></div>
     </div>
 
-    <!-- ── 营养热量页 ── -->
+    <!-- ── 营养热量 ── -->
     <div class="page" id="page-nutrition">
-      <div class="page-header">
-        <div class="page-eyebrow">Nutrition Facts · 营养数据</div>
-        <div class="page-title">热量对照表</div>
-      </div>
-      <div style="font-size:12px;color:#666;margin-bottom:16px;border-left:3px solid var(--green);padding-left:10px">
-        数据基于标准食材营养数据库估算，以每份实际配方用量计算，仅供参考。
-      </div>
+      <div class="page-eyebrow">Nutrition Facts</div>
+      <div class="page-title">热量对照表</div>
       <div style="overflow-x:auto">
-        <table class="table" id="nutrition-table">
-          <thead>
-            <tr>
-              <th>产品名称</th><th>系列</th><th style="color:var(--yellow)">热量 kcal</th>
-              <th>蛋白质 g</th><th>脂肪 g</th><th>碳水 g</th><th>膳食纤维 g</th><th>吐司</th>
-            </tr>
-          </thead>
+        <table class="table">
+          <thead><tr>
+            <th>产品名称</th><th>系列</th><th style="color:var(--yellow)">热量kcal</th>
+            <th>蛋白质g</th><th>脂肪g</th><th>碳水g</th><th>膳食纤维g</th><th>吐司</th>
+          </tr></thead>
           <tbody id="nutrition-tbody"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- ── 历史记录页 ── -->
+    <!-- ── 历史记录 ── -->
     <div class="page" id="page-history">
-      <div class="page-header">
-        <div class="page-eyebrow">History · 历史记录</div>
-        <div class="page-title">备料历史</div>
-      </div>
+      <div class="page-eyebrow">History</div>
+      <div class="page-title">备料历史</div>
       <div class="box">
         <div class="box-header">历史备料记录</div>
-        <div id="history-list">
-          <div style="padding:32px;text-align:center;color:#999;font-size:13px">暂无历史记录，生成备料单后自动保存</div>
-        </div>
+        <div id="history-list"><div style="padding:32px;text-align:center;color:#999;font-size:13px">暂无历史记录</div></div>
       </div>
     </div>
 
-    <!-- ── 设置页 ── -->
-    <div class="page" id="page-settings">
-      <div class="page-header">
-        <div class="page-eyebrow">Settings · 系统设置</div>
-        <div class="page-title">设置</div>
-      </div>
-
-      <!-- 方舟 API Key 设置（图片识别用） -->
+    <!-- ── 员工管理（管理员专用） ── -->
+    <div class="page" id="page-users">
+      <div class="page-eyebrow">Admin · 管理员专属</div>
+      <div class="page-title">员工管理</div>
       <div class="box">
-        <div class="box-header">AI 识别配置（图片识别备货单）</div>
+        <div class="box-header">待审核账号</div>
+        <div id="pending-users-list"><div style="padding:16px;font-size:13px;color:#666">加载中…</div></div>
+      </div>
+      <div class="box">
+        <div class="box-header">全部员工账号</div>
+        <div id="all-users-list"><div style="padding:16px;font-size:13px;color:#666">加载中…</div></div>
+      </div>
+    </div>
+
+    <!-- ── 设置（管理员专用） ── -->
+    <div class="page" id="page-settings">
+      <div class="page-eyebrow">Admin · 管理员专属</div>
+      <div class="page-title">系统设置</div>
+
+      <div class="box">
+        <div class="box-header">AI 识别配置</div>
         <div class="box-body">
           <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px">
             <div class="feieyun-status">
-              <div class="status-dot" id="claude-dot" style="background:var(--gray2)"></div>
-              <span id="claude-status-text">未配置</span>
+              <div class="status-dot" id="ai-dot" style="background:var(--gray2)"></div>
+              <span id="ai-status-text">加载中…</span>
             </div>
           </div>
           <div style="margin-bottom:12px">
             <label class="label">方舟平台 API Key</label>
-            <input class="input" id="claude-apikey" type="password" placeholder="输入方舟平台 API Key" oninput="saveClaudeConfig()">
+            <input class="input" id="s-fangzhou-key" type="password" placeholder="输入方舟平台 API Key">
           </div>
-          <div style="font-size:11px;color:#888">
-            识别模型：<b>glm-4.6v</b>（智谱视觉）· 接口地址：api.aiyungc.cn/v1<br>
-            Key 仅保存在本地浏览器，不会上传到任何服务器。
+          <div style="font-size:11px;color:#888;margin-bottom:12px">
+            识别模型：<b>glm-4.6v</b> · 接口：api.aiyungc.cn/v1
           </div>
+          <button class="btn btn-black" onclick="saveSettings()">保存配置</button>
         </div>
       </div>
 
-      <!-- 飞鹅打印机设置 -->
       <div class="box">
         <div class="box-header">飞鹅打印机配置</div>
         <div class="box-body">
-          <div style="margin-bottom:16px;display:flex;align-items:center;gap:10px">
-            <div class="feieyun-status">
-              <div class="status-dot" id="feie-dot" style="background:var(--gray2)"></div>
-              <span id="feie-status-text">未配置</span>
-            </div>
-          </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
             <div>
-              <label class="label">APP ID（开发者平台获取）</label>
-              <input class="input" id="feie-appid" placeholder="飞鹅开发者 APP ID" oninput="saveFeieyunConfig()">
+              <label class="label">APP ID</label>
+              <input class="input" id="s-feie-appid" placeholder="飞鹅开发者 APP ID">
             </div>
             <div>
-              <label class="label">APP KEY（开发者平台获取）</label>
-              <input class="input" id="feie-appkey" placeholder="飞鹅开发者 APP KEY" type="password" oninput="saveFeieyunConfig()">
+              <label class="label">APP KEY</label>
+              <input class="input" id="s-feie-appkey" type="password" placeholder="飞鹅开发者 APP KEY">
             </div>
             <div>
-              <label class="label">打印机 SN 号</label>
-              <input class="input" id="feie-sn" placeholder="打印机机身 SN 号" oninput="saveFeieyunConfig()">
+              <label class="label">打印机 SN</label>
+              <input class="input" id="s-feie-sn" placeholder="打印机机身 SN 号">
             </div>
             <div>
               <label class="label">打印机 KEY</label>
-              <input class="input" id="feie-key" placeholder="打印机 KEY" type="password" oninput="saveFeieyunConfig()">
+              <input class="input" id="s-feie-key" type="password" placeholder="打印机 KEY">
             </div>
           </div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <button class="btn btn-black" onclick="testFeieyun()">测试连接</button>
-            <div style="font-size:11px;color:#888">
-              飞鹅开发者平台：<a href="https://open.feieyun.com" target="_blank" style="color:var(--green)">open.feieyun.com</a>
-              · 需注册开发者账号获取 APP ID 和 APP KEY
-            </div>
+          <button class="btn btn-black" onclick="saveSettings()">保存配置</button>
+          <div style="font-size:11px;color:#888;margin-top:10px">
+            飞鹅开发者平台：<a href="https://open.feieyun.com" target="_blank" style="color:var(--green)">open.feieyun.com</a>
           </div>
-        </div>
-      </div>
-
-      <!-- 访问密码设置 -->
-      <div class="box">
-        <div class="box-header">系统访问密码</div>
-        <div class="box-body">
-          <div style="display:flex;gap:12px;align-items:flex-end">
-            <div style="flex:1">
-              <label class="label">新密码</label>
-              <input class="input" id="new-pwd" type="password" placeholder="输入新的访问密码">
-            </div>
-            <button class="btn btn-black" onclick="changePassword()">修改密码</button>
-          </div>
-          <div style="font-size:11px;color:#888;margin-top:8px">密码保存在本地浏览器，更换设备需重新设置</div>
-        </div>
-      </div>
-
-      <!-- 关于 -->
-      <div class="box">
-        <div class="box-header">关于系统</div>
-        <div class="box-body" style="font-size:12px;color:#666;line-height:2">
-          <div>系统名称：莱珂珍妮 OA 内部管理系统</div>
-          <div>域名：oa.shengyuanhong.cn</div>
-          <div>版本：v1.0.0</div>
-          <div>功能：产品手册 · 制作流程 · 营养热量 · 备料计算 · 飞鹅打印</div>
-          <div style="margin-top:8px">© 2026 河南盛塬宏品牌管理有限责任公司</div>
         </div>
       </div>
     </div>
 
   </div><!-- /content -->
-</div><!-- /app -->
+
+  <div class="statusbar">
+    <span style="color:var(--green)">● ONLINE</span>
+    <span style="color:#333">·</span>
+    <span style="color:#444">oa.shengyuanhong.cn</span>
+    <span style="margin-left:auto;color:#333" id="status-clock"></span>
+  </div>
+</div>
 
 <script>
 // ══════════════════════════════════════════════
-// 数据层：产品数据库
+// Supabase 初始化
 // ══════════════════════════════════════════════
+const SUPABASE_URL = 'https://jgeunwaxmgwqlclthwwi.supabase.co'
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpnZXVud2F4bWd3cWxjbHRod3dpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzMwMDMsImV4cCI6MjA5NDkwOTAwM30.zre5Wi95sxv-bIqp46bOgd4qwOa5w2VOo2MMYrUTsqE'
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON)
 
-// 食材单位枚举：g=克 pcs=个/颗/片 portion=适量份
-const UNIT = { G: 'g', PCS: '份', PORTION: '适量份' }
-
-// 食材分类（用于备料单分组）
-const CAT = {
-  BREAD: '面包类',
-  PROTEIN: '蛋白质/肉类',
-  EGG: '蛋类',
-  VEGGIE: '蔬菜类',
-  FRUIT: '水果类',
-  DAIRY: '奶制品/芝士',
-  GRAIN: '米面/淀粉类',
-  SAUCE: '酱料/调味',
-  MISC: '其他食材',
-}
-
-// 食材定义：[名称, 数量, 单位, 分类]
-// 适量类统一用1 PORTION计
-const ING = {
-  // 面包
-  toast_spinach: ['菠菜吐司', 3, '片', CAT.BREAD],
-  toast_wholewheat: ['全麦吐司', 3, '片', CAT.BREAD],
-  toast_pumpkin: ['南瓜吐司', 3, '片', CAT.BREAD],
-  toast_purple: ['紫薯吐司', 3, '片', CAT.BREAD],
-  toast_spinach_2: ['菠菜吐司', 2, '片', CAT.BREAD],
-  // 蛋白质
-  crab_stick: ['蟹柳丝', 95, 'g', CAT.PROTEIN],
-  smoked_chicken: ['烟熏鸡', 92, 'g', CAT.PROTEIN],
-  chicken_cutlet: ['炸鸡排', 1, '片', CAT.PROTEIN],
-  beef_angus: ['安格斯牛排', 1, '片', CAT.PROTEIN],
-  pork_cutlet: ['日式猪扒', 1, '片', CAT.PROTEIN],
-  chicken_breast: ['鸡胸肉', 1, '块', CAT.PROTEIN],
-  sausage: ['烤肠', 3, '根', CAT.PROTEIN],
-  rousong: ['肉松', 1, UNIT.PORTION, CAT.PROTEIN],
-  bacon: ['培根', 1, UNIT.PORTION, CAT.PROTEIN],
-  // 蛋类
-  egg: ['虫草蛋', 1, '颗', CAT.EGG],
-  egg_2: ['虫草蛋', 2, '颗', CAT.EGG],
-  egg_4: ['虫草蛋', 4, '颗', CAT.EGG],
-  // 蔬菜
-  lettuce: ['球生菜', 1, UNIT.PORTION, CAT.VEGGIE],
-  cucumber: ['黄瓜', 4, '片', CAT.VEGGIE],
-  tomato: ['西红柿', 1, '片', CAT.VEGGIE],
-  carrot: ['胡萝卜丝', 1, UNIT.PORTION, CAT.VEGGIE],
-  gongsai: ['贡菜', 1, UNIT.PORTION, CAT.VEGGIE],
-  corn: ['玉米粒', 50, 'g', CAT.VEGGIE],
-  // 水果
-  mango: ['鲜芒果', 1, UNIT.PORTION, CAT.FRUIT],
-  strawberry: ['草莓', 5, '颗', CAT.FRUIT],
-  blueberry: ['蓝莓', 10, '颗', CAT.FRUIT],
-  green_grape: ['青提', 9, '颗', CAT.FRUIT],
-  pineapple: ['凤梨片（罐头）', 1, '片', CAT.FRUIT],
-  orange: ['橘子', 2, '个', CAT.FRUIT],
-  banana: ['香蕉', 3, '根', CAT.FRUIT],
-  // 奶制品
-  cream_cheese: ['安佳奶油奶酪', 100, 'g', CAT.DAIRY],
-  cream_cheese_80: ['安佳奶油奶酪', 80, 'g', CAT.DAIRY],
-  cream_cheese_60: ['安佳奶油奶酪', 60, 'g', CAT.DAIRY],
-  cream_cheese_90: ['安佳奶油奶酪', 90, 'g', CAT.DAIRY],
-  cream_cheese_150: ['安佳奶油奶酪', 150, 'g', CAT.DAIRY],
-  whipping_cream: ['淡奶油', 16, 'g', CAT.DAIRY],
-  milk: ['牛奶', 20, 'g', CAT.DAIRY],
-  milk_180: ['牛奶', 180, 'g', CAT.DAIRY],
-  milk_400: ['牛奶（奶冻用）', 400, 'g', CAT.DAIRY],
-  butter: ['黄油', 15, 'g', CAT.DAIRY],
-  butter_10: ['黄油', 10, 'g', CAT.DAIRY],
-  butter_5: ['黄油', 5, 'g', CAT.DAIRY],
-  cheese_slice: ['妙可蓝多芝士片', 1, '片', CAT.DAIRY],
-  // 米面
-  taro: ['芋头', 130, 'g', CAT.GRAIN],
-  purple_yam: ['紫薯', 50, 'g', CAT.GRAIN],
-  potato: ['土豆', 1, '个', CAT.GRAIN],
-  black_rice: ['血糯米', 150, 'g', CAT.GRAIN],
-  white_rice: ['白糯米', 90, 'g', CAT.GRAIN],
-  glutinous_flour: ['三象糯米粉', 100, 'g', CAT.GRAIN],
-  corn_starch: ['玉米淀粉', 30, 'g', CAT.GRAIN],
-  ramen: ['火鸡面', 150, 'g', CAT.GRAIN],
-  potato_mashed: ['土豆泥（成品）', 130, 'g', CAT.GRAIN],
-  coconut_milk: ['椰浆', 200, 'g', CAT.GRAIN],
-  white_rice_200: ['白糯米', 200, 'g', CAT.GRAIN],
-  taro_150: ['芋头', 150, 'g', CAT.GRAIN],
-  purple_yam_70: ['紫薯', 70, 'g', CAT.GRAIN],
-  gelatin: ['吉利丁片', 18, 'g', CAT.GRAIN],
-  // 酱料调味
-  sugar: ['白糖', 15, 'g', CAT.SAUCE],
-  mayo: ['蛋黄酱', 1, UNIT.PORTION, CAT.SAUCE],
-  blueberry_jam: ['安德鲁蓝莓酱', 8, 'g', CAT.SAUCE],
-  matcha_powder: ['抹茶粉（五十铃）', 0.35, 'g', CAT.SAUCE],
-  jasmine_syrup: ['茉莉糖浆', 5.1, 'g', CAT.SAUCE],
-  mint_syrup: ['薄荷糖浆', 3, 'g', CAT.SAUCE],
-  coconut_powder: ['椰子粉', 20, 'g', CAT.SAUCE],
-  yangzhi_powder: ['杨枝甘露粉', 8, 'g', CAT.SAUCE],
-  strawberry_powder: ['红颜草莓粉', 6, 'g', CAT.SAUCE],
-  melon_powder: ['哈密瓜粉', 9, 'g', CAT.SAUCE],
-  pomelo: ['柚子粒', 120, 'g', CAT.SAUCE],
-  // 其他
-  crispy_ball: ['脆啵啵（晶球）', 70, 'g', CAT.MISC],
-  crispy_ball_150: ['脆波波', 150, 'g', CAT.MISC],
-  crispy_pine: ['脆肉松', 1, UNIT.PORTION, CAT.MISC],
-  choco_drop: ['巧克力水滴', 1, UNIT.PORTION, CAT.MISC],
-  jasmine_dry: ['茉莉花干', 1, UNIT.PORTION, CAT.MISC],
-  black_sesame_mix: ['黑芝麻泥（混合料）', 1, UNIT.PORTION, CAT.MISC],
-  peanut_butter: ['四季宝花生酱', 1, UNIT.PORTION, CAT.MISC],
-  mochi: ['麻薯（成品）', 120, 'g', CAT.MISC],
-  taro_mash: ['芋泥（成品）', 150, 'g', CAT.MISC],
-  blood_rice_cooked: ['血糯米饭（成品）', 180, 'g', CAT.MISC],
-  custard_cake: ['厚蛋烧（成品）', 1, '个', CAT.MISC],
-  salsify_root: ['贡菜', 1, UNIT.PORTION, CAT.VEGGIE],
-}
-
-// ── 产品配方表 ──
-// 每个产品：{id, name, cat, kcal, series, bread, ingredients:[[名称,数量,单位,分类],...]}
-const PRODUCTS = [
-  {
-    id: 'xiebliudan', name: '蟹柳滑蛋', cat: '咸鲜', kcal: 368,
-    bread: '菠菜吐司×3片', toastKey: 'toast_spinach',
-    ingredients: [
-      ['蟹柳丝', 95, 'g', CAT.PROTEIN],
-      ['虫草蛋', 2, '颗', CAT.EGG],
-      ['牛奶（滑蛋）', 20, 'g', CAT.DAIRY],
-      ['球生菜', 1, UNIT.PORTION, CAT.VEGGIE],
-      ['黄瓜', 4, '片', CAT.VEGGIE],
-      ['胡萝卜丝', 1, UNIT.PORTION, CAT.VEGGIE],
-      ['菠菜吐司', 3, '片', CAT.BREAD],
-    ],
-    steps: [
-      {title:'备料', content:'蟹柳丝化冻后挤干水分称重，胡萝卜切丝锅内喷油煸炒加松茸鲜和白芝麻'},
-      {title:'制作滑蛋', content:'容器打2颗虫草蛋，加柠檬大蒜盐适量+20g牛奶搅拌，倒入锅内中火滑动成型冷固'},
-      {title:'组装', content:'3片菠菜吐司打沙拉酱。第一片：生菜+胡萝卜丝+蟹柳丝+沙拉酱+蜂蜜芥末酱+生菜。第二片：黄瓜+滑蛋+沙拉酱+番茄酱。第三片翻盖第一片，整体翻转到第二片，打包切开装盒'},
-    ]
-  },
-  {
-    id: 'tudouyuxunji', name: '土豆泥烟熏鸡', cat: '咸鲜', kcal: 412,
-    bread: '全麦吐司×3片', toastKey: 'toast_wholewheat',
-    ingredients: [
-      ['烟熏鸡', 92, 'g', CAT.PROTEIN],
-      ['土豆泥（成品）', 140, 'g', CAT.GRAIN],
-      ['土豆', 1, '个', CAT.GRAIN],
-      ['虫草蛋', 1, '颗', CAT.EGG],
-      ['球生菜', 1, UNIT.PORTION, CAT.VEGGIE],
-      ['黄瓜', 4, '片', CAT.VEGGIE],
-      ['胡萝卜丝', 1, UNIT.PORTION, CAT.VEGGIE],
-      ['蛋黄酱', 1, UNIT.PORTION, CAT.SAUCE],
-      ['全麦吐司', 3, '片', CAT.BREAD],
-    ],
-    steps: [
-      {title:'制作土豆泥', content:'土豆切片+少量胡萝卜+1颗鸡蛋上蒸箱蒸40分钟，加欧芹大蒜盐用压泥器压泥，冷却后加蛋黄酱拌匀'},
-      {title:'备蛋白质', content:'烟熏鸡化冻挤干水分称重使用，胡萝卜切丝锅内喷油煸炒加松茸鲜白芝麻'},
-      {title:'组装', content:'3片全麦吐司打沙拉酱。第一片：生菜+胡萝卜丝+烟熏鸡+沙拉酱+生菜。第二片：黄瓜+土豆泥130-150g。第三片翻盖，整体翻转打包切开'},
-    ]
-  },
-  {
-    id: 'jingdianpai', name: '经典鸡排', cat: '咸鲜', kcal: 486,
-    bread: '南瓜吐司×3片', toastKey: 'toast_pumpkin',
-    ingredients: [
-      ['炸鸡排', 1, '片', CAT.PROTEIN],
-      ['肉松（3A）', 1, UNIT.PORTION, CAT.PROTEIN],
-      ['虫草蛋', 1, '颗', CAT.EGG],
-      ['球生菜', 1, UNIT.PORTION, CAT.VEGGIE],
-      ['黄瓜', 4, '片', CAT.VEGGIE],
-      ['西红柿', 1, '片', CAT.VEGGIE],
-      ['胡萝卜丝', 1, UNIT.PORTION, CAT.VEGGIE],
-      ['南瓜吐司', 3, '片', CAT.BREAD],
-    ],
-    steps: [
-      {title:'炸鸡排', content:'油热后放入鸡排（无需解冻），浮起后再炸2-5分钟至金黄'},
-      {title:'煎蛋', content:'煎蛋锅喷油打入鸡蛋，凝固成型后翻转继续煎熟，不要流心蛋'},
-      {title:'组装', content:'3片南瓜吐司打沙拉酱。第一片：生菜+胡萝卜丝+鸡排+沙拉酱+蜂蜜芥末酱+生菜。第二片：肉松铺底+黄瓜4片+西红柿+煎蛋+沙拉酱+番茄酱。第三片翻盖，整体翻转打包'},
-    ]
-  },
-  {
-    id: 'angesiniu', name: '安格斯牛肉', cat: '咸鲜', kcal: 458,
-    bread: '全麦吐司×3片', toastKey: 'toast_wholewheat',
-    ingredients: [
-      ['安格斯牛排', 1, '片', CAT.PROTEIN],
-      ['虫草蛋', 1, '颗', CAT.EGG],
-      ['球生菜', 1, UNIT.PORTION, CAT.VEGGIE],
-      ['黄瓜', 4, '片', CAT.VEGGIE],
-      ['西红柿', 1, '片', CAT.VEGGIE],
-      ['胡萝卜丝', 1, UNIT.PORTION, CAT.VEGGIE],
-      ['黄油（煎牛排）', 1, UNIT.PORTION, CAT.SAUCE],
-      ['全麦吐司', 3, '片', CAT.BREAD],
-    ],
-    steps: [
-      {title:'煎牛排', content:'全程小火，煎锅放少量黄油，牛排上下翻面煎至无血水即可'},
-      {title:'煎蛋', content:'煎蛋锅喷油打入鸡蛋，凝固翻转煎熟，不要流心蛋'},
-      {title:'组装', content:'3片全麦吐司打沙拉酱。第一片：生菜+胡萝卜丝+牛排+沙拉酱+蜂蜜芥末酱+生菜。第二片：黄瓜+西红柿+煎蛋+沙拉酱+番茄酱。第三片翻盖，整体翻转打包'},
-    ]
-  },
-  {
-    id: 'yunijipai', name: '芋泥鸡排', cat: '咸鲜', kcal: 524,
-    bread: '紫薯吐司×3片', toastKey: 'toast_purple',
-    ingredients: [
-      ['炸鸡排', 1, '片', CAT.PROTEIN],
-      ['虫草蛋', 1, '颗', CAT.EGG],
-      ['芋泥（成品）', 165, 'g', CAT.GRAIN],
-      ['芋头', 130, 'g', CAT.GRAIN],
-      ['紫薯', 50, 'g', CAT.GRAIN],
-      ['白糖（芋泥）', 19, 'g', CAT.SAUCE],
-      ['球生菜', 1, UNIT.PORTION, CAT.VEGGIE],
-      ['胡萝卜丝', 1, UNIT.PORTION, CAT.VEGGIE],
-      ['紫薯吐司', 3, '片', CAT.BREAD],
-    ],
-    steps: [
-      {title:'制作芋泥', content:'芋头130g+紫薯50g蒸40分钟，加白糖19g搅拌，冷却后少量多次加牛奶至绵密'},
-      {title:'炸鸡排', content:'油热后放入鸡排，浮起后再炸2-5分钟'},
-      {title:'煎蛋', content:'煎蛋锅喷油打入鸡蛋，凝固翻转煎熟'},
-      {title:'组装', content:'3片紫薯吐司打沙拉酱。第一片：生菜+胡萝卜丝+鸡排+沙拉酱+蜂蜜芥末酱+煎蛋+番茄酱。第二片：芋泥150-180g。第三片翻盖第二片，叠加到第一片，打包切开'},
-    ]
-  },
-  {
-    id: 'dizhijisi', name: '低脂鸡丝贡菜', cat: '咸鲜', kcal: 298,
-    bread: '南瓜吐司×3片', toastKey: 'toast_pumpkin',
-    ingredients: [
-      ['鸡胸肉', 1, '块', CAT.PROTEIN],
-      ['贡菜', 1, UNIT.PORTION, CAT.VEGGIE],
-      ['培根', 1, UNIT.PORTION, CAT.PROTEIN],
-      ['虫草蛋（煎蛋）', 1, '颗', CAT.EGG],
-      ['球生菜', 1, UNIT.PORTION, CAT.VEGGIE],
-      ['黄瓜', 4, '片', CAT.VEGGIE],
-      ['西红柿', 1, '片', CAT.VEGGIE],
-      ['胡萝卜丝', 1, UNIT.PORTION, CAT.VEGGIE],
-      ['南瓜吐司', 3, '片', CAT.BREAD],
-    ],
-    steps: [
-      {title:'腌制鸡胸（提前一天）', content:'鸡胸肉去皮去筋膜划两刀，加卡真粉+黑胡椒大蒜盐+料酒腌制30分钟'},
-      {title:'制作鸡丝', content:'沸水大火煮4分钟，关火焖10分钟，取出冷却撕成鸡丝，加欧芹大蒜盐+辣椒面+芥末籽酱+柠檬汁+香菜+大根丝+培根+白芝麻拌匀，放置1小时入味'},
-      {title:'备贡菜', content:'贡菜冷水泡15分钟后取出切段'},
-      {title:'组装', content:'3片南瓜吐司打沙拉酱。第一片：生菜+贡菜鸡丝150g+生菜。第二片：黄瓜+西红柿+煎蛋+沙拉酱+番茄酱。第三片翻盖第一片，整体翻转打包切开'},
-    ]
-  },
-  {
-    id: 'rishi_zhu', name: '日式厚切猪扒', cat: '咸鲜', kcal: 512,
-    bread: '南瓜吐司×3片', toastKey: 'toast_pumpkin',
-    ingredients: [
-      ['日式猪扒', 1, '片', CAT.PROTEIN],
-      ['厚蛋烧', 1, '个', CAT.EGG],
-      ['虫草蛋（厚蛋烧用）', 4, '颗', CAT.EGG],
-      ['牛奶（厚蛋烧）', 40, 'g', CAT.DAIRY],
-      ['脆肉松', 1, UNIT.PORTION, CAT.PROTEIN],
-      ['球生菜', 1, UNIT.PORTION, CAT.VEGGIE],
-      ['胡萝卜丝', 1, UNIT.PORTION, CAT.VEGGIE],
-      ['南瓜吐司', 3, '片', CAT.BREAD],
-    ],
-    steps: [
-      {title:'炸猪扒', content:'160°热油炸猪扒，浮起后翻面再炸2-5分钟至金黄'},
-      {title:'制作厚蛋烧', content:'4颗虫草蛋加柠檬大蒜盐+40g牛奶搅拌，一半蛋液入玉子烧锅滑动成型，做1个厚蛋烧'},
-      {title:'组装', content:'3片南瓜吐司打沙拉酱。第一片：生菜+胡萝卜丝+猪扒+沙拉酱+蜂蜜芥末酱+生菜。第二片：厚蛋烧居中+沙拉酱+番茄酱+脆松。第三片翻盖第一片，整体翻转打包'},
-    ]
-  },
-  {
-    id: 'nalao_yuni', name: '奶酪芋泥血糯米', cat: '甜品', kcal: 486,
-    bread: '紫薯吐司×3片', toastKey: 'toast_purple',
-    ingredients: [
-      ['安佳奶油奶酪', 100, 'g', CAT.DAIRY],
-      ['白糖（奶酪）', 15, 'g', CAT.SAUCE],
-      ['淡奶油', 16, 'g', CAT.DAIRY],
-      ['血糯米（干）', 150, 'g', CAT.GRAIN],
-      ['白糯米（干）', 90, 'g', CAT.GRAIN],
-      ['黄油（糯米）', 15, 'g', CAT.DAIRY],
-      ['白糖（糯米）', 30, 'g', CAT.SAUCE],
-      ['肉松（鑫黄记3号）', 1, UNIT.PORTION, CAT.PROTEIN],
-      ['芋泥（成品）', 180, 'g', CAT.GRAIN],
-      ['芋头（制芋泥）', 150, 'g', CAT.GRAIN],
-      ['紫薯（制芋泥）', 70, 'g', CAT.GRAIN],
-      ['白糖（芋泥）', 20, 'g', CAT.SAUCE],
-      ['紫薯吐司', 3, '片', CAT.BREAD],
-    ],
-    steps: [
-      {title:'制作血糯米', content:'血糯米150g+白糯米90g热水泡半小时，电饭煲煮熟加黄油15g+白糖30g焖15分钟，搅拌冷却'},
-      {title:'制作芋泥', content:'芋头150g+紫薯70g蒸40分钟，加白糖20g搅拌，冷却后少量多次加牛奶至绵密'},
-      {title:'制作基础奶酪', content:'奶油奶酪100g+白糖15g搅拌至看不到白糖，加淡奶油15-18g继续搅拌'},
-      {title:'组装', content:'3片紫薯吐司。第一片：抹基础奶酪+血糯米180g。第二片：肉松铺底+芋泥180g。第三片翻盖第二片，叠加到第一片，打包切开'},
-    ]
-  },
-  {
-    id: 'naidong_mocha', name: '奶冻抹茶血糯米', cat: '甜品', kcal: 468,
-    bread: '紫薯吐司×3片', toastKey: 'toast_purple',
-    ingredients: [
-      ['安佳奶油奶酪', 100, 'g', CAT.DAIRY],
-      ['白糖（奶酪）', 15, 'g', CAT.SAUCE],
-      ['淡奶油（奶酪）', 16, 'g', CAT.DAIRY],
-      ['血糯米（干）', 150, 'g', CAT.GRAIN],
-      ['白糯米（干）', 90, 'g', CAT.GRAIN],
-      ['黄油（糯米）', 15, 'g', CAT.DAIRY],
-      ['白糖（糯米）', 30, 'g', CAT.SAUCE],
-      ['抹茶粉（五十铃）', 0.35, 'g', CAT.SAUCE],
-      ['吉利丁片', 18, 'g', CAT.GRAIN],
-      ['牛奶（奶冻）', 400, 'g', CAT.DAIRY],
-      ['淡奶油（奶冻）', 200, 'g', CAT.DAIRY],
-      ['白糖（奶冻）', 40, 'g', CAT.SAUCE],
-      ['巧克力水滴', 1, UNIT.PORTION, CAT.MISC],
-      ['紫薯吐司', 3, '片', CAT.BREAD],
-    ],
-    steps: [
-      {title:'制作奶冻（提前一天）', content:'吉利丁冷水泡软，牛奶400g+淡奶油200g+白糖40g加热，加入吉利丁融化，过滤2次倒托盘冷藏至少4小时。1托盘可出4份'},
-      {title:'制作血糯米', content:'同奶酪芋泥血糯米做法'},
-      {title:'制作抹茶奶酪', content:'基础奶酪35g加抹茶粉0.35g搅拌均匀'},
-      {title:'组装', content:'第一片：抹基础奶酪+血糯米200g+抹茶奶酪35g。第二片：奶冻（取1/4份）。第三片翻盖，叠加，在抹茶奶酪处撒巧克力水滴，打包'},
-    ]
-  },
-  {
-    id: 'lannmei_boba', name: '蓝莓啵啵', cat: '甜品', kcal: 392,
-    bread: '紫薯吐司×3片', toastKey: 'toast_purple',
-    ingredients: [
-      ['安佳奶油奶酪', 80, 'g', CAT.DAIRY],
-      ['白糖', 8, 'g', CAT.SAUCE],
-      ['安德鲁蓝莓酱', 8, 'g', CAT.SAUCE],
-      ['脆啵啵（晶球）', 70, 'g', CAT.MISC],
-      ['蓝莓', 10, '颗', CAT.FRUIT],
-      ['芋泥（成品）', 165, 'g', CAT.GRAIN],
-      ['芋头（制芋泥）', 130, 'g', CAT.GRAIN],
-      ['紫薯（制芋泥）', 50, 'g', CAT.GRAIN],
-      ['白糖（芋泥）', 19, 'g', CAT.SAUCE],
-      ['紫薯吐司', 3, '片', CAT.BREAD],
-    ],
-    steps: [
-      {title:'制作蓝莓啵啵奶酪', content:'奶油奶酪80g+白糖8g搅拌，加蓝莓酱8g搅拌，加脆啵啵70g搅拌均匀'},
-      {title:'制作芋泥', content:'芋头130g+紫薯50g蒸40分钟，加白糖搅拌，冷却后少量多次加牛奶至绵密'},
-      {title:'备蓝莓', content:'蓝莓用盐水浸泡10分钟清洗滤干'},
-      {title:'组装', content:'第一片：蓝莓啵啵奶酪150g+蓝莓8-12颗。第二片：芋泥150-180g。第三片翻盖，叠加，在奶酪处塞4颗蓝莓，打包'},
-    ]
-  },
-  {
-    id: 'mochi_strawberry', name: '麻薯草莓', cat: '甜品', kcal: 446,
-    bread: '菠菜吐司×2片', toastKey: 'toast_spinach_2',
-    ingredients: [
-      ['三象糯米粉', 100, 'g', CAT.GRAIN],
-      ['玉米淀粉', 30, 'g', CAT.GRAIN],
-      ['白糖（麻薯）', 20, 'g', CAT.SAUCE],
-      ['牛奶（麻薯）', 180, 'g', CAT.DAIRY],
-      ['黄油（麻薯）', 10, 'g', CAT.DAIRY],
-      ['安佳奶油奶酪', 150, 'g', CAT.DAIRY],
-      ['白糖（奶酪）', 15, 'g', CAT.SAUCE],
-      ['淡奶油', 5, 'g', CAT.DAIRY],
-      ['脆波波', 150, 'g', CAT.MISC],
-      ['草莓', 5, '颗', CAT.FRUIT],
-      ['菠菜吐司', 2, '片', CAT.BREAD],
-    ],
-    steps: [
-      {title:'制作麻薯', content:'糯米粉100g+玉米淀粉30g+白糖20g+牛奶180g搅拌过滤，保鲜膜封好戳洞，蒸箱40分钟，加黄油10g揉匀冷却'},
-      {title:'制作奶酪', content:'奶油奶酪150g+白糖15g搅拌，加淡奶油5g，加脆波波150g拌匀'},
-      {title:'组装', content:'第一片：取60g麻薯拉到面包大小，抹奶酪150g，放草莓5颗。第二片：取60g麻薯拉到面包大小，抹奶酪150g。第二片翻盖第一片，打包切开'},
-    ]
-  },
-  {
-    id: 'moligingtip', name: '茉莉青提奶酪', cat: '甜品', kcal: 420,
-    bread: '菠菜吐司×3片', toastKey: 'toast_spinach',
-    ingredients: [
-      ['安佳奶油奶酪', 150, 'g', CAT.DAIRY],
-      ['白糖', 15, 'g', CAT.SAUCE],
-      ['茉莉糖浆', 5.1, 'g', CAT.SAUCE],
-      ['薄荷糖浆', 3, 'g', CAT.SAUCE],
-      ['茉莉花干', 1, UNIT.PORTION, CAT.MISC],
-      ['青提', 9, '颗', CAT.FRUIT],
-      ['三象糯米粉', 50, 'g', CAT.GRAIN],
-      ['玉米淀粉', 15, 'g', CAT.GRAIN],
-      ['白糖（麻薯）', 10, 'g', CAT.SAUCE],
-      ['牛奶（麻薯）', 90, 'g', CAT.DAIRY],
-      ['黄油（麻薯）', 5, 'g', CAT.DAIRY],
-      ['菠菜吐司', 3, '片', CAT.BREAD],
-    ],
-    steps: [
-      {title:'制作茉莉奶酪', content:'奶油奶酪150g+白糖15g搅拌，加茉莉糖浆5.1g+薄荷糖浆3g，加茉莉花干拌匀'},
-      {title:'制作麻薯', content:'糯米粉50g+玉米淀粉15g+白糖10g+牛奶90g搅拌，蒸箱40分钟，加黄油5g揉匀冷却'},
-      {title:'备青提', content:'青提9颗清洗剥皮备用'},
-      {title:'组装', content:'第一片：茉莉奶酪150g+青提9颗。第二片：麻薯80g拉到面包大小。第三片翻盖，叠加，打包'},
-    ]
-  },
-  {
-    id: 'mango_yuni', name: '芒果芋泥血糯米', cat: '水果', kcal: 502,
-    bread: '南瓜吐司×3片', toastKey: 'toast_pumpkin',
-    ingredients: [
-      ['鲜芒果', 1, UNIT.PORTION, CAT.FRUIT],
-      ['安佳奶油奶酪', 100, 'g', CAT.DAIRY],
-      ['白糖', 15, 'g', CAT.SAUCE],
-      ['淡奶油', 16, 'g', CAT.DAIRY],
-      ['芋泥（成品）', 110, 'g', CAT.GRAIN],
-      ['芋头（制芋泥）', 100, 'g', CAT.GRAIN],
-      ['紫薯（制芋泥）', 20, 'g', CAT.GRAIN],
-      ['血糯米（干）', 50, 'g', CAT.GRAIN],
-      ['白糯米（干）', 30, 'g', CAT.GRAIN],
-      ['黄油', 5, 'g', CAT.DAIRY],
-      ['白糖（糯米）', 10, 'g', CAT.SAUCE],
-      ['南瓜吐司', 3, '片', CAT.BREAD],
-    ],
-    steps: [
-      {title:'制作芋泥', content:'芋头100g+紫薯20g蒸40分钟，加白糖15g搅拌，冷却后少量多次加牛奶至绵密'},
-      {title:'制作血糯米', content:'血糯米50g+白糯米30g热水泡半小时，煮熟加黄油5g+白糖10g焖15分钟冷却'},
-      {title:'备芒果', content:'时令芒果贴核切开，过一下糖水防氧化'},
-      {title:'组装', content:'第一片：基础奶酪+芋泥100-120g+血糯米100-120g。第二片：基础奶酪+芒果片。第三片翻盖，叠加，打包'},
-    ]
-  },
-  {
-    id: 'thai_mango', name: '泰式芒果椰椰', cat: '水果', kcal: 498,
-    bread: '菠菜吐司×3片', toastKey: 'toast_spinach',
-    ingredients: [
-      ['鲜芒果', 1, UNIT.PORTION, CAT.FRUIT],
-      ['白糯米（干）', 200, 'g', CAT.GRAIN],
-      ['椰浆', 200, 'g', CAT.MISC],
-      ['椰子粉', 20, 'g', CAT.SAUCE],
-      ['白糖（椰浆糯米）', 20, 'g', CAT.SAUCE],
-      ['安佳奶油奶酪', 100, 'g', CAT.DAIRY],
-      ['白糖（奶酪）', 15, 'g', CAT.SAUCE],
-      ['淡奶油', 16, 'g', CAT.DAIRY],
-      ['菠菜吐司', 3, '片', CAT.BREAD],
-    ],
-    steps: [
-      {title:'制作椰浆糯米', content:'白糯米200g煮熟，椰浆200g+椰子粉20g+白糖20g煮开，过滤拌入糯米冷却'},
-      {title:'制作基础奶酪', content:'奶油奶酪100g+白糖15g+淡奶油15-18g搅拌顺滑'},
-      {title:'备芒果', content:'时令芒果半个贴核切片，过糖水防氧化'},
-      {title:'组装', content:'第一片：基础奶酪+椰浆糯米120g。第二片：基础奶酪+椰浆糯米80g+芒果片+糯米50g+芒果片+糯米30g+芒果片。第三片翻盖，叠加，打包'},
-    ]
-  },
-  {
-    id: 'blueberry_tangerine', name: '奶酪蓝莓甜橘', cat: '水果', kcal: 356,
-    bread: '菠菜吐司×3片', toastKey: 'toast_spinach',
-    ingredients: [
-      ['安佳奶油奶酪（哈密瓜）', 90, 'g', CAT.DAIRY],
-      ['白糖（哈密瓜）', 9, 'g', CAT.SAUCE],
-      ['哈密瓜粉', 9, 'g', CAT.SAUCE],
-      ['安佳奶油奶酪（草莓）', 60, 'g', CAT.DAIRY],
-      ['白糖（草莓）', 6, 'g', CAT.SAUCE],
-      ['红颜草莓粉', 6, 'g', CAT.SAUCE],
-      ['橘子', 2, '个', CAT.FRUIT],
-      ['蓝莓', 11, '颗', CAT.FRUIT],
-      ['菠菜吐司', 3, '片', CAT.BREAD],
-    ],
-    steps: [
-      {title:'制作双色奶酪', content:'哈密瓜奶酪：奶油奶酪90g+白糖9g+哈密瓜粉9g搅拌均匀。草莓奶酪：奶油奶酪60g+白糖6g+红颜草莓粉6g搅拌均匀'},
-      {title:'备水果', content:'橘子2个剥皮对半掰开，蓝莓清洗干净'},
-      {title:'组装', content:'第一片：哈密瓜奶酪70g+橘子+中间补奶酪20g。第二片：草莓奶酪60g+蓝莓10-12颗。第三片翻盖，叠加，打包'},
-    ]
-  },
-  {
-    id: 'yangzhi_ganluo', name: '杨枝甘露', cat: '水果', kcal: 410,
-    bread: '南瓜吐司×3片', toastKey: 'toast_pumpkin',
-    ingredients: [
-      ['鲜芒果', 1, UNIT.PORTION, CAT.FRUIT],
-      ['安佳奶油奶酪', 80, 'g', CAT.DAIRY],
-      ['白糖', 8, 'g', CAT.SAUCE],
-      ['杨枝甘露粉', 8, 'g', CAT.SAUCE],
-      ['柚子粒', 160, 'g', CAT.SAUCE],
-      ['南瓜吐司', 3, '片', CAT.BREAD],
-    ],
-    steps: [
-      {title:'制作杨枝甘露奶酪', content:'奶油奶酪80g+白糖8g搅拌，加杨枝甘露粉8g，加柚子粒120g搅拌均匀'},
-      {title:'备芒果', content:'时令芒果贴核切片，过糖水防氧化'},
-      {title:'组装', content:'第一片：杨枝甘露奶酪150g+柚子粒40g。第二片：基础奶酪+芒果片。第三片翻盖，叠加，打包'},
-    ]
-  },
-  {
-    id: 'wugu_fengdeng', name: '五谷丰登', cat: '特色', kcal: 544,
-    bread: '全麦吐司×3片', toastKey: 'toast_wholewheat',
-    ingredients: [
-      ['贝贝南瓜', 5, '段', CAT.VEGGIE],
-      ['铁棍山药', 2, '段', CAT.VEGGIE],
-      ['红薯', 3, '段', CAT.VEGGIE],
-      ['紫薯', 3, '段', CAT.VEGGIE],
-      ['荔甫芋头', 3, '块', CAT.VEGGIE],
-      ['脆肉松（焦福记）', 70, 'g', CAT.PROTEIN],
-      ['安佳奶油奶酪', 100, 'g', CAT.DAIRY],
-      ['白糖', 15, 'g', CAT.SAUCE],
-      ['淡奶油', 16, 'g', CAT.DAIRY],
-      ['全麦吐司', 3, '片', CAT.BREAD],
-    ],
-    steps: [
-      {title:'处理五谷', content:'南瓜切10-12小段，山药削皮切吐司长度，红薯/紫薯竖切条状，芋头切块，全部蒸箱蒸40分钟冷却'},
-      {title:'制作基础奶酪', content:'奶油奶酪100g+白糖15g搅拌至顺滑，加淡奶油15-18g继续搅拌'},
-      {title:'组装', content:'第一片：均匀抹基础奶酪，按角摆4段南瓜+山药+红薯+紫薯+芋头，填满，顶部抹奶酪60-80g。第二片：脆酥松60-80g。第三片翻盖第一片，叠加到第二片，打包切开'},
-    ]
-  },
-]
-
-// 营养数据
-const NUTRITION = [
-  {name:'低脂鸡丝贡菜', cat:'咸鲜', kcal:298, prot:34, fat:8,  carb:28, fiber:4.2, bread:'南瓜吐司'},
-  {name:'蟹柳滑蛋',     cat:'咸鲜', kcal:368, prot:24, fat:12, carb:38, fiber:3.8, bread:'菠菜吐司'},
-  {name:'奶酪蓝莓甜橘', cat:'水果', kcal:356, prot:9,  fat:15, carb:46, fiber:3.2, bread:'菠菜吐司'},
-  {name:'蓝莓啵啵',     cat:'甜品', kcal:392, prot:10, fat:16, carb:52, fiber:2.8, bread:'紫薯吐司'},
-  {name:'土豆泥烟熏鸡', cat:'咸鲜', kcal:412, prot:28, fat:14, carb:45, fiber:4.5, bread:'全麦吐司'},
-  {name:'杨枝甘露',     cat:'水果', kcal:410, prot:9,  fat:15, carb:58, fiber:2.6, bread:'南瓜吐司'},
-  {name:'茉莉青提奶酪', cat:'甜品', kcal:420, prot:10, fat:17, carb:54, fiber:2.4, bread:'菠菜吐司'},
-  {name:'麻薯草莓',     cat:'甜品', kcal:446, prot:9,  fat:18, carb:58, fiber:2.5, bread:'菠菜吐司×2'},
-  {name:'安格斯牛肉',   cat:'咸鲜', kcal:458, prot:35, fat:18, carb:38, fiber:4.0, bread:'全麦吐司'},
-  {name:'奶冻抹茶血糯米',cat:'甜品',kcal:468, prot:10, fat:16, carb:65, fiber:2.2, bread:'紫薯吐司'},
-  {name:'经典鸡排',     cat:'咸鲜', kcal:486, prot:32, fat:20, carb:42, fiber:3.5, bread:'南瓜吐司'},
-  {name:'奶酪芋泥血糯米',cat:'甜品',kcal:486, prot:12, fat:18, carb:68, fiber:3.0, bread:'紫薯吐司'},
-  {name:'芒果芋泥血糯米',cat:'水果',kcal:502, prot:10, fat:16, carb:72, fiber:3.8, bread:'南瓜吐司'},
-  {name:'泰式芒果椰椰', cat:'水果', kcal:498, prot:11, fat:16, carb:74, fiber:2.8, bread:'菠菜吐司'},
-  {name:'日式厚切猪扒', cat:'咸鲜', kcal:512, prot:38, fat:22, carb:40, fiber:3.2, bread:'南瓜吐司'},
-  {name:'芋泥鸡排',     cat:'咸鲜', kcal:524, prot:28, fat:20, carb:58, fiber:3.4, bread:'紫薯吐司'},
-  {name:'五谷丰登',     cat:'特色', kcal:544, prot:14, fat:20, carb:76, fiber:5.8, bread:'全麦吐司'},
-]
-
-const CAT_COLORS = {
-  '咸鲜':'background:#FFF3EC;color:#E8834A',
-  '甜品':'background:#F5F0FF;color:#7B5EA7',
-  '水果':'background:#EFF6FF;color:#4A7FA5',
-  '特色':'background:#FFF0F0;color:#C94040',
-}
+let currentUser = null
+let isAdmin = false
+let oaSettings = {}
+let ocrData = {}
 
 // ══════════════════════════════════════════════
-// 应用逻辑
+// 认证逻辑
 // ══════════════════════════════════════════════
+function switchAuthTab(tab) {
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login')
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register')
+  document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none'
+  document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none'
+}
 
-const DEFAULT_PASSWORD = 'lkj2026'
-
-function doLogin() {
-  const pwd = document.getElementById('loginPwd').value
-  const saved = localStorage.getItem('oa_password') || DEFAULT_PASSWORD
-  if (pwd === saved) {
-    document.getElementById('login-page').style.display = 'none'
-    document.getElementById('app').style.display = 'flex'
-    initApp()
-  } else {
-    showToast('密码错误', 'error')
-    document.getElementById('loginPwd').value = ''
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim()
+  const pwd = document.getElementById('login-pwd').value
+  const btn = document.getElementById('login-btn')
+  const err = document.getElementById('login-err')
+  if (!email || !pwd) { err.textContent = '请填写邮箱和密码'; return }
+  btn.disabled = true; btn.textContent = '登录中…'; err.textContent = ''
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd })
+    if (error) throw error
+    await initUserSession(data.user)
+  } catch (e) {
+    err.textContent = e.message.includes('Invalid') ? '邮箱或密码错误' : e.message
+    btn.disabled = false; btn.textContent = '登录 →'
   }
 }
 
-function doLogout() {
-  document.getElementById('login-page').style.display = 'flex'
+async function doRegister() {
+  const name = document.getElementById('reg-name').value.trim()
+  const email = document.getElementById('reg-email').value.trim()
+  const pwd = document.getElementById('reg-pwd').value
+  const btn = document.getElementById('reg-btn')
+  const err = document.getElementById('reg-err')
+  if (!name || !email || !pwd) { err.textContent = '请填写完整信息'; return }
+  if (pwd.length < 6) { err.textContent = '密码至少6位'; return }
+  btn.disabled = true; btn.textContent = '提交中…'; err.textContent = ''
+  try {
+    const { data, error } = await sb.auth.signUp({ email, password: pwd,
+      options: { data: { display_name: name } }
+    })
+    if (error) throw error
+    err.style.color = 'var(--green)'
+    err.textContent = '✓ 注册成功！请等待管理员审核后方可登录'
+    btn.textContent = '已提交'
+  } catch (e) {
+    err.style.color = 'var(--red)'
+    err.textContent = e.message.includes('already') ? '该邮箱已注册' : e.message
+    btn.disabled = false; btn.textContent = '提交注册 →'
+  }
+}
+
+async function initUserSession(user) {
+  currentUser = user
+  // 查 profile
+  const { data: profile } = await sb.from('profiles').select('is_admin, is_oa_user, display_name').eq('id', user.id).single()
+
+  // 未审核的员工（is_oa_user = false）不能登录
+  if (!profile?.is_oa_user && !profile?.is_admin) {
+    await sb.auth.signOut()
+    document.getElementById('login-err').textContent = '账号尚未激活，请联系管理员审核'
+    document.getElementById('login-btn').disabled = false
+    document.getElementById('login-btn').textContent = '登录 →'
+    return
+  }
+
+  isAdmin = profile?.is_admin === true
+  const displayName = profile?.display_name || user.email.split('@')[0]
+
+  // 显示主界面
+  document.getElementById('auth-page').style.display = 'none'
+  document.getElementById('app').style.display = 'flex'
+  document.getElementById('topbar-user').textContent = displayName
+  document.getElementById('topbar-role').textContent = isAdmin ? 'ADMIN' : 'STAFF'
+  if (isAdmin) {
+    document.getElementById('topbar-role').className = 'badge badge-admin'
+    document.getElementById('nav-users').style.display = 'flex'
+    document.getElementById('nav-settings').style.display = 'flex'
+    await loadSettings()
+    loadPendingUsers()
+  }
+
+  initApp()
+}
+
+async function doLogout() {
+  await sb.auth.signOut()
+  currentUser = null; isAdmin = false; oaSettings = {}
+  document.getElementById('auth-page').style.display = 'flex'
   document.getElementById('app').style.display = 'none'
-  document.getElementById('loginPwd').value = ''
+  document.getElementById('login-email').value = ''
+  document.getElementById('login-pwd').value = ''
+  document.getElementById('login-err').textContent = ''
+  document.getElementById('login-btn').disabled = false
+  document.getElementById('login-btn').textContent = '登录 →'
 }
 
-function changePassword() {
-  const p = document.getElementById('new-pwd').value.trim()
-  if (!p) { showToast('密码不能为空', 'error'); return }
-  localStorage.setItem('oa_password', p)
-  showToast('密码已修改，下次登录生效', 'success')
-  document.getElementById('new-pwd').value = ''
+// 页面加载时检查登录状态
+window.addEventListener('load', async () => {
+  const { data: { session } } = await sb.auth.getSession()
+  if (session?.user) {
+    await initUserSession(session.user)
+  }
+  // 时钟
+  setInterval(() => {
+    const el = document.getElementById('status-clock')
+    if (el) el.textContent = new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit',second:'2-digit'})
+  }, 1000)
+})
+
+// ══════════════════════════════════════════════
+// 设置管理（管理员专用，读写 Supabase）
+// ══════════════════════════════════════════════
+async function loadSettings() {
+  const { data } = await sb.from('oa_settings').select('*').eq('id', 1).single()
+  if (data) {
+    oaSettings = data
+    // 更新设置页输入框
+    if (data.fangzhou_api_key) document.getElementById('s-fangzhou-key').value = data.fangzhou_api_key
+    if (data.feie_appid) document.getElementById('s-feie-appid').value = data.feie_appid
+    if (data.feie_appkey) document.getElementById('s-feie-appkey').value = data.feie_appkey
+    if (data.feie_sn) document.getElementById('s-feie-sn').value = data.feie_sn
+    if (data.feie_key) document.getElementById('s-feie-key').value = data.feie_key
+    // 更新状态
+    const dot = document.getElementById('ai-dot')
+    const txt = document.getElementById('ai-status-text')
+    if (dot && txt) {
+      if (data.fangzhou_api_key) { dot.className='status-dot dot-green'; txt.textContent='已配置 · glm-4.6v' }
+      else { dot.className='status-dot dot-gray'; txt.textContent='未配置' }
+    }
+  }
 }
 
-function switchPage(name) {
+async function saveSettings() {
+  const updates = {
+    fangzhou_api_key: document.getElementById('s-fangzhou-key').value.trim() || null,
+    feie_appid: document.getElementById('s-feie-appid').value.trim() || null,
+    feie_appkey: document.getElementById('s-feie-appkey').value.trim() || null,
+    feie_sn: document.getElementById('s-feie-sn').value.trim() || null,
+    feie_key: document.getElementById('s-feie-key').value.trim() || null,
+    updated_at: new Date().toISOString(),
+  }
+  const { error } = await sb.from('oa_settings').update(updates).eq('id', 1)
+  if (error) { showToast('保存失败：' + error.message, 'error'); return }
+  oaSettings = { ...oaSettings, ...updates }
+  showToast('设置已保存', 'success')
+  await loadSettings()
+}
+
+// ══════════════════════════════════════════════
+// 员工管理（管理员专用）
+// ══════════════════════════════════════════════
+async function loadPendingUsers() {
+  const { data: users } = await sb.from('profiles').select('id, display_name, is_oa_user, is_admin, created_at')
+  if (!users) return
+
+  // 查 auth.users 邮箱（通过 admin API，这里用已有的 /api/admin/users 接口）
+  const res = await fetch('/api/admin/users').catch(() => null)
+  const authData = res?.ok ? await res.json() : { users: [] }
+  const authUsers = authData.users || []
+
+  const pending = users.filter(u => !u.is_oa_user && !u.is_admin)
+  const active = users.filter(u => u.is_oa_user || u.is_admin)
+
+  const emailOf = (id) => authUsers.find(u => u.id === id)?.email || id.slice(0,12) + '…'
+
+  // 待审核
+  const pendingEl = document.getElementById('pending-users-list')
+  pendingEl.innerHTML = pending.length === 0
+    ? '<div style="padding:16px;font-size:13px;color:#666">暂无待审核账号</div>'
+    : pending.map(u => `
+      <div class="user-row">
+        <div>
+          <div style="font-weight:700;font-size:13px">${u.display_name || '未填写姓名'}</div>
+          <div style="font-size:11px;color:#888">${emailOf(u.id)}</div>
+        </div>
+        <span class="badge" style="background:#FFF3CD;color:#856404">待审核</span>
+        <button class="btn btn-green btn-sm" onclick="approveUser('${u.id}')">✓ 激活</button>
+      </div>`).join('')
+
+  // 全部员工
+  const allEl = document.getElementById('all-users-list')
+  allEl.innerHTML = active.length === 0
+    ? '<div style="padding:16px;font-size:13px;color:#666">暂无员工账号</div>'
+    : active.map(u => `
+      <div class="user-row">
+        <div>
+          <div style="font-weight:700;font-size:13px">${u.display_name || emailOf(u.id)}</div>
+          <div style="font-size:11px;color:#888">${emailOf(u.id)}</div>
+        </div>
+        ${u.is_admin ? '<span class="badge badge-admin">管理员</span>' : '<span class="badge badge-green">员工</span>'}
+        ${u.is_admin ? '<div></div>' : `<button class="btn btn-ghost btn-sm" onclick="revokeUser('${u.id}')">停用</button>`}
+      </div>`).join('')
+}
+
+async function approveUser(userId) {
+  const { error } = await sb.from('profiles').update({ is_oa_user: true }).eq('id', userId)
+  if (error) { showToast('操作失败', 'error'); return }
+  showToast('账号已激活', 'success')
+  loadPendingUsers()
+}
+
+async function revokeUser(userId) {
+  if (!confirm('确认停用该员工账号？')) return
+  const { error } = await sb.from('profiles').update({ is_oa_user: false }).eq('id', userId)
+  if (error) { showToast('操作失败', 'error'); return }
+  showToast('账号已停用', 'success')
+  loadPendingUsers()
+}
+
+// ══════════════════════════════════════════════
+// 页面切换
+// ══════════════════════════════════════════════
+function switchPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'))
   document.getElementById('page-' + name).classList.add('active')
-  event.target.classList.add('active')
+  if (btn) btn.classList.add('active')
   if (name === 'history') renderHistory()
+  if (name === 'users') loadPendingUsers()
 }
 
-function showToast(msg, type = 'info', duration = 3000) {
+function showToast(msg, type='info', duration=3000) {
   const c = document.getElementById('toastContainer')
   const t = document.createElement('div')
-  t.className = `toast toast-${type}`
-  t.textContent = msg
+  t.className = `toast toast-${type}`; t.textContent = msg
   c.appendChild(t)
-  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300) }, duration)
+  setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300) }, duration)
 }
 
-// ── 初始化 ──
+// ══════════════════════════════════════════════
+// 图片识别 OCR
+// ══════════════════════════════════════════════
+function handleOcrUpload(event) {
+  const file = event.target.files[0]
+  if (!file) return
+  const apiKey = oaSettings.fangzhou_api_key
+  if (!apiKey) {
+    showToast('请联系管理员在设置页配置 AI 识别 API Key', 'error', 4000)
+    return
+  }
+  const reader = new FileReader()
+  reader.onload = e => {
+    document.getElementById('ocr-preview').style.display = 'block'
+    document.getElementById('ocr-img').src = e.target.result
+    document.getElementById('ocr-status').textContent = '🔍 AI 识别中，请稍候…'
+    document.getElementById('ocr-result-list').innerHTML = ''
+    document.getElementById('ocr-actions').style.display = 'none'
+    recognizeOrder(e.target.result.split(',')[1], file.type || 'image/jpeg', apiKey)
+  }
+  reader.readAsDataURL(file)
+}
+
+async function recognizeOrder(base64, mediaType, apiKey) {
+  const productNames = PRODUCTS.map(p => p.name).join('、')
+  const prompt = `你是餐厅备货单识别助手。识别图片中的订单，提取产品名称和数量。
+系统产品列表：${productNames}
+以JSON返回：{"orders":[{"name":"产品名","qty":数量}],"note":"备注"}
+只返回JSON，产品名尽量匹配列表，数量为整数。`
+  try {
+    const res = await fetch('https://api.aiyungc.cn/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: 'glm-4.6v', max_tokens: 1000,
+        messages: [{ role: 'user', content: [
+          { type: 'image_url', image_url: { url: `data:${mediaType};base64,${base64}` } },
+          { type: 'text', text: prompt }
+        ]}]
+      })
+    })
+    if (!res.ok) throw new Error(`API错误 ${res.status}`)
+    const data = await res.json()
+    const text = data.choices?.[0]?.message?.content || ''
+    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim())
+    showOcrResult(parsed)
+  } catch (err) {
+    document.getElementById('ocr-status').innerHTML = `<span style="color:var(--red)">❌ 识别失败：${err.message}</span>`
+  }
+}
+
+function showOcrResult(parsed) {
+  const orders = parsed.orders || []
+  ocrData = {}
+  let matched = 0, unmatched = []
+  orders.forEach(o => {
+    const p = fuzzyMatchProduct(o.name)
+    if (p) { ocrData[p.id] = (ocrData[p.id] || 0) + o.qty; matched++ }
+    else unmatched.push(o.name)
+  })
+  let html = Object.entries(ocrData).map(([id, qty]) => {
+    const p = PRODUCTS.find(p => p.id === id)
+    return p ? `<div>✓ <b>${p.name}</b> × <b style="color:var(--orange)">${qty}</b></div>` : ''
+  }).join('')
+  if (unmatched.length) html += `<div style="color:#888;margin-top:4px">未匹配：${unmatched.join('、')}</div>`
+  document.getElementById('ocr-result-list').innerHTML = html
+  document.getElementById('ocr-status').innerHTML =
+    `<span style="color:var(--green)">✓ 识别完成，${matched} 款产品${unmatched.length ? `，${unmatched.length} 项未匹配` : ''}</span>`
+  document.getElementById('ocr-actions').style.display = 'flex'
+  showToast(`识别成功！${matched} 款`, 'success')
+}
+
+function fuzzyMatchProduct(name) {
+  if (!name) return null
+  const n = name.trim()
+  return PRODUCTS.find(p => p.name === n) ||
+         PRODUCTS.find(p => n.includes(p.name) || p.name.includes(n)) ||
+         PRODUCTS.find(p => p.name.includes(n.slice(0, 2))) || null
+}
+
+function applyOcrResult() {
+  PRODUCTS.forEach(p => { const el = document.getElementById('qty-' + p.id); if(el) el.value = 0 })
+  Object.entries(ocrData).forEach(([id, qty]) => { const el = document.getElementById('qty-' + id); if(el) el.value = qty })
+  updateTotal()
+  showToast('已自动填入，请核对后生成备料单', 'success', 4000)
+  document.getElementById('order-list').scrollIntoView({ behavior: 'smooth' })
+}
+
+function resetOcr() {
+  document.getElementById('ocr-file').value = ''
+  document.getElementById('ocr-preview').style.display = 'none'
+  ocrData = {}
+}
+
+// ══════════════════════════════════════════════
+// 飞鹅打印
+// ══════════════════════════════════════════════
+async function printFeieyun() {
+  const { feie_appid, feie_appkey, feie_sn, feie_key } = oaSettings
+  if (!feie_appid || !feie_sn) {
+    showToast(isAdmin ? '请先在设置页配置飞鹅打印机信息' : '请联系管理员配置打印机', 'error'); return
+  }
+  const stime = Math.floor(Date.now() / 1000).toString()
+  const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(feie_appid + feie_appkey + stime))
+  const sig = Array.from(new Uint8Array(hashBuffer)).map(b=>b.toString(16).padStart(2,'0')).join('')
+  const content = buildPrintContent()
+  const params = new URLSearchParams({ user:feie_appid, ukey:feie_appkey, stime, sig, apiname:'Open_printMsg', sn:feie_sn, key:feie_key, content, times:'1' })
+  try {
+    const res = await fetch('https://api.feieyun.cn/Api/Open/', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params.toString() })
+    const data = await res.json()
+    if (data.ret === 0) showToast('✓ 打印任务已发送！', 'success', 4000)
+    else showToast(`打印失败：${data.msg}`, 'error', 5000)
+  } catch { showToast('飞鹅API调用失败（CORS），可能需要服务端代理', 'error', 5000) }
+}
+
+function buildPrintContent() {
+  const meta = document.getElementById('prep-meta')?.textContent || ''
+  const summary = document.getElementById('order-summary')?.textContent || ''
+  let c = `<CB>莱珂珍妮备料单</CB>\n<C>${meta}</C>\n<L>---</L>\n${summary}\n<L>---</L>\n`
+  document.querySelectorAll('#prep-table .prep-section').forEach(sec => {
+    c += `\n<B>${sec.querySelector('.prep-category')?.textContent||''}</B>\n`
+    sec.querySelectorAll('.prep-item').forEach(item => {
+      const name = item.querySelector('.prep-name')?.textContent||''
+      const qty = item.querySelector('.prep-qty')?.textContent||''
+      const unit = item.querySelector('.prep-unit')?.textContent||''
+      c += `${name}<RIGHT>${qty}${unit}</RIGHT>\n`
+    })
+  })
+  c += `\n<L>---</L>\n<C>莱珂珍妮 · ${new Date().toLocaleDateString('zh-CN')}</C>\n`
+  return c
+}
+
+// ══════════════════════════════════════════════
+// 备料计算核心逻辑
+// ══════════════════════════════════════════════
+const UNIT = { G: 'g', PCS: '份', PORTION: '适量份' }
+const CAT = { BREAD:'面包类', PROTEIN:'蛋白质/肉类', EGG:'蛋类', VEGGIE:'蔬菜类', FRUIT:'水果类', DAIRY:'奶制品', GRAIN:'米面/淀粉', SAUCE:'酱料/调味', MISC:'其他食材' }
+
+const PRODUCTS = [
+  { id:'xiebliudan', name:'蟹柳滑蛋', cat:'咸鲜', kcal:368, bread:'菠菜吐司×3片',
+    ingredients:[['蟹柳丝',95,'g',CAT.PROTEIN],['虫草蛋',2,'颗',CAT.EGG],['牛奶（滑蛋）',20,'g',CAT.DAIRY],['球生菜',1,UNIT.PORTION,CAT.VEGGIE],['黄瓜',4,'片',CAT.VEGGIE],['胡萝卜丝',1,UNIT.PORTION,CAT.VEGGIE],['菠菜吐司',3,'片',CAT.BREAD]],
+    steps:[{title:'备料',content:'蟹柳丝化冻挤干水分称重，胡萝卜切丝锅内喷油煸炒加松茸鲜和白芝麻'},{title:'制作滑蛋',content:'容器打2颗虫草蛋，加柠檬大蒜盐+20g牛奶搅拌，倒入锅内中火滑动成型冷固'},{title:'组装',content:'3片菠菜吐司打沙拉酱。第一片：生菜+胡萝卜丝+蟹柳丝+沙拉酱+蜂蜜芥末酱+生菜。第二片：黄瓜+滑蛋+沙拉酱+番茄酱。第三片翻盖第一片，整体翻转到第二片，打包切开装盒'}]},
+  { id:'tudouyuxunji', name:'土豆泥烟熏鸡', cat:'咸鲜', kcal:412, bread:'全麦吐司×3片',
+    ingredients:[['烟熏鸡',92,'g',CAT.PROTEIN],['土豆泥（成品）',140,'g',CAT.GRAIN],['土豆',1,'个',CAT.GRAIN],['虫草蛋',1,'颗',CAT.EGG],['球生菜',1,UNIT.PORTION,CAT.VEGGIE],['黄瓜',4,'片',CAT.VEGGIE],['胡萝卜丝',1,UNIT.PORTION,CAT.VEGGIE],['蛋黄酱',1,UNIT.PORTION,CAT.SAUCE],['全麦吐司',3,'片',CAT.BREAD]],
+    steps:[{title:'制作土豆泥',content:'土豆切片+少量胡萝卜+1颗鸡蛋蒸40分钟，加欧芹大蒜盐压泥，冷却后加蛋黄酱拌匀'},{title:'备料',content:'烟熏鸡化冻挤干称重，胡萝卜切丝煸炒'},{title:'组装',content:'3片全麦吐司打沙拉酱。第一片：生菜+胡萝卜丝+烟熏鸡+沙拉酱。第二片：黄瓜+土豆泥130-150g。第三片翻盖打包'}]},
+  { id:'jingdianpai', name:'经典鸡排', cat:'咸鲜', kcal:486, bread:'南瓜吐司×3片',
+    ingredients:[['炸鸡排',1,'片',CAT.PROTEIN],['肉松（3A）',1,UNIT.PORTION,CAT.PROTEIN],['虫草蛋',1,'颗',CAT.EGG],['球生菜',1,UNIT.PORTION,CAT.VEGGIE],['黄瓜',4,'片',CAT.VEGGIE],['西红柿',1,'片',CAT.VEGGIE],['胡萝卜丝',1,UNIT.PORTION,CAT.VEGGIE],['南瓜吐司',3,'片',CAT.BREAD]],
+    steps:[{title:'炸鸡排',content:'油热后放入鸡排，浮起后再炸2-5分钟至金黄'},{title:'煎蛋',content:'煎蛋锅喷油打入鸡蛋，凝固翻转煎熟，不要流心蛋'},{title:'组装',content:'3片南瓜吐司打沙拉酱。第一片：生菜+胡萝卜丝+鸡排+沙拉酱+蜂蜜芥末酱。第二片：肉松+黄瓜+西红柿+煎蛋。第三片翻盖打包'}]},
+  { id:'angesiniu', name:'安格斯牛肉', cat:'咸鲜', kcal:458, bread:'全麦吐司×3片',
+    ingredients:[['安格斯牛排',1,'片',CAT.PROTEIN],['虫草蛋',1,'颗',CAT.EGG],['球生菜',1,UNIT.PORTION,CAT.VEGGIE],['黄瓜',4,'片',CAT.VEGGIE],['西红柿',1,'片',CAT.VEGGIE],['胡萝卜丝',1,UNIT.PORTION,CAT.VEGGIE],['全麦吐司',3,'片',CAT.BREAD]],
+    steps:[{title:'煎牛排',content:'全程小火，加少量黄油，上下翻面煎至无血水'},{title:'煎蛋',content:'煎蛋锅喷油打蛋，凝固翻转煎熟'},{title:'组装',content:'3片全麦吐司打沙拉酱。第一片：生菜+胡萝卜丝+牛排+沙拉酱+蜂蜜芥末酱。第二片：黄瓜+西红柿+煎蛋。第三片翻盖打包'}]},
+  { id:'yunijipai', name:'芋泥鸡排', cat:'咸鲜', kcal:524, bread:'紫薯吐司×3片',
+    ingredients:[['炸鸡排',1,'片',CAT.PROTEIN],['虫草蛋',1,'颗',CAT.EGG],['芋泥（成品）',165,'g',CAT.GRAIN],['芋头',130,'g',CAT.GRAIN],['紫薯',50,'g',CAT.GRAIN],['白糖',19,'g',CAT.SAUCE],['球生菜',1,UNIT.PORTION,CAT.VEGGIE],['胡萝卜丝',1,UNIT.PORTION,CAT.VEGGIE],['紫薯吐司',3,'片',CAT.BREAD]],
+    steps:[{title:'制作芋泥',content:'芋头130g+紫薯50g蒸40分钟，加白糖搅拌，冷却后少量多次加牛奶至绵密'},{title:'炸鸡排+煎蛋',content:'油热炸鸡排浮起后再炸2-5分钟；煎蛋凝固翻转，不流心'},{title:'组装',content:'3片紫薯吐司打沙拉酱。第一片：生菜+胡萝卜丝+鸡排+煎蛋。第二片：芋泥150-180g。第三片翻盖叠加打包'}]},
+  { id:'dizhijisi', name:'低脂鸡丝贡菜', cat:'咸鲜', kcal:298, bread:'南瓜吐司×3片',
+    ingredients:[['鸡胸肉',1,'块',CAT.PROTEIN],['贡菜',1,UNIT.PORTION,CAT.VEGGIE],['培根',1,UNIT.PORTION,CAT.PROTEIN],['虫草蛋',1,'颗',CAT.EGG],['球生菜',1,UNIT.PORTION,CAT.VEGGIE],['黄瓜',4,'片',CAT.VEGGIE],['西红柿',1,'片',CAT.VEGGIE],['南瓜吐司',3,'片',CAT.BREAD]],
+    steps:[{title:'腌制鸡胸（提前一天）',content:'鸡胸肉去皮去筋膜，加卡真粉+黑胡椒大蒜盐+料酒腌30分钟'},{title:'制作鸡丝',content:'沸水大火煮4分钟，关火焖10分钟，撕成鸡丝，加欧芹大蒜盐+辣椒面+芥末籽酱+柠檬汁+香菜+大根丝+培根+白芝麻拌匀放1小时'},{title:'组装',content:'3片南瓜吐司打沙拉酱。第一片：生菜+贡菜鸡丝150g+生菜。第二片：黄瓜+西红柿+煎蛋。第三片翻盖打包'}]},
+  { id:'rishi_zhu', name:'日式厚切猪扒', cat:'咸鲜', kcal:512, bread:'南瓜吐司×3片',
+    ingredients:[['日式猪扒',1,'片',CAT.PROTEIN],['虫草蛋（厚蛋烧）',4,'颗',CAT.EGG],['牛奶（厚蛋烧）',40,'g',CAT.DAIRY],['脆肉松',1,UNIT.PORTION,CAT.PROTEIN],['球生菜',1,UNIT.PORTION,CAT.VEGGIE],['胡萝卜丝',1,UNIT.PORTION,CAT.VEGGIE],['南瓜吐司',3,'片',CAT.BREAD]],
+    steps:[{title:'炸猪扒',content:'160°热油炸，浮起翻面再炸2-5分钟至金黄'},{title:'制作厚蛋烧',content:'4颗虫草蛋+40g牛奶+柠檬大蒜盐搅拌，玉子烧锅滑动成型'},{title:'组装',content:'3片南瓜吐司打沙拉酱。第一片：生菜+胡萝卜丝+猪扒+沙拉酱+蜂蜜芥末酱。第二片：厚蛋烧+沙拉酱+番茄酱+脆松。第三片翻盖打包'}]},
+  { id:'nalao_yuni', name:'奶酪芋泥血糯米', cat:'甜品', kcal:486, bread:'紫薯吐司×3片',
+    ingredients:[['安佳奶油奶酪',100,'g',CAT.DAIRY],['白糖（奶酪）',15,'g',CAT.SAUCE],['淡奶油',16,'g',CAT.DAIRY],['血糯米（干）',150,'g',CAT.GRAIN],['白糯米（干）',90,'g',CAT.GRAIN],['黄油',15,'g',CAT.DAIRY],['白糖（糯米）',30,'g',CAT.SAUCE],['肉松',1,UNIT.PORTION,CAT.PROTEIN],['芋泥（成品）',180,'g',CAT.GRAIN],['芋头',150,'g',CAT.GRAIN],['紫薯',70,'g',CAT.GRAIN],['白糖（芋泥）',20,'g',CAT.SAUCE],['紫薯吐司',3,'片',CAT.BREAD]],
+    steps:[{title:'制作血糯米',content:'血糯米150g+白糯米90g热水泡半小时，煮熟加黄油15g+白糖30g焖15分钟冷却'},{title:'制作芋泥',content:'芋头150g+紫薯70g蒸40分钟，加白糖搅拌，冷却后少量多次加牛奶至绵密'},{title:'制作基础奶酪',content:'奶油奶酪100g+白糖15g搅拌，加淡奶油15-18g继续搅拌'},{title:'组装',content:'第一片：抹基础奶酪+血糯米180g。第二片：肉松+芋泥180g。第三片翻盖叠加打包'}]},
+  { id:'naidong_mocha', name:'奶冻抹茶血糯米', cat:'甜品', kcal:468, bread:'紫薯吐司×3片',
+    ingredients:[['安佳奶油奶酪',100,'g',CAT.DAIRY],['白糖',15,'g',CAT.SAUCE],['淡奶油（奶酪）',16,'g',CAT.DAIRY],['血糯米（干）',150,'g',CAT.GRAIN],['白糯米（干）',90,'g',CAT.GRAIN],['黄油',15,'g',CAT.DAIRY],['白糖（糯米）',30,'g',CAT.SAUCE],['抹茶粉（五十铃）',0.35,'g',CAT.SAUCE],['吉利丁片',18,'g',CAT.GRAIN],['牛奶（奶冻）',400,'g',CAT.DAIRY],['淡奶油（奶冻）',200,'g',CAT.DAIRY],['白糖（奶冻）',40,'g',CAT.SAUCE],['巧克力水滴',1,UNIT.PORTION,CAT.MISC],['紫薯吐司',3,'片',CAT.BREAD]],
+    steps:[{title:'制作奶冻（提前一天）',content:'吉利丁冷水泡软，牛奶400g+淡奶油200g+白糖40g加热，加吉利丁融化，过滤倒托盘冷藏4小时。1托盘出4份'},{title:'制作血糯米',content:'同奶酪芋泥血糯米做法'},{title:'组装',content:'第一片：基础奶酪+血糯米200g+抹茶奶酪35g。第二片：奶冻（取1/4）。第三片翻盖，撒巧克力水滴打包'}]},
+  { id:'lannmei_boba', name:'蓝莓啵啵', cat:'甜品', kcal:392, bread:'紫薯吐司×3片',
+    ingredients:[['安佳奶油奶酪',80,'g',CAT.DAIRY],['白糖',8,'g',CAT.SAUCE],['安德鲁蓝莓酱',8,'g',CAT.SAUCE],['脆啵啵（晶球）',70,'g',CAT.MISC],['蓝莓',10,'颗',CAT.FRUIT],['芋泥（成品）',165,'g',CAT.GRAIN],['芋头',130,'g',CAT.GRAIN],['紫薯',50,'g',CAT.GRAIN],['白糖（芋泥）',19,'g',CAT.SAUCE],['紫薯吐司',3,'片',CAT.BREAD]],
+    steps:[{title:'制作蓝莓啵啵奶酪',content:'奶油奶酪80g+白糖8g搅拌，加蓝莓酱8g，加脆啵啵70g拌匀'},{title:'制作芋泥',content:'芋头130g+紫薯50g蒸40分钟，冷却后少量多次加牛奶至绵密'},{title:'组装',content:'第一片：蓝莓啵啵奶酪150g+蓝莓8-12颗。第二片：芋泥150-180g。第三片翻盖，奶酪处塞4颗蓝莓打包'}]},
+  { id:'mochi_strawberry', name:'麻薯草莓', cat:'甜品', kcal:446, bread:'菠菜吐司×2片',
+    ingredients:[['三象糯米粉',100,'g',CAT.GRAIN],['玉米淀粉',30,'g',CAT.GRAIN],['白糖（麻薯）',20,'g',CAT.SAUCE],['牛奶（麻薯）',180,'g',CAT.DAIRY],['黄油（麻薯）',10,'g',CAT.DAIRY],['安佳奶油奶酪',150,'g',CAT.DAIRY],['白糖（奶酪）',15,'g',CAT.SAUCE],['淡奶油',5,'g',CAT.DAIRY],['脆波波',150,'g',CAT.MISC],['草莓',5,'颗',CAT.FRUIT],['菠菜吐司',2,'片',CAT.BREAD]],
+    steps:[{title:'制作麻薯',content:'糯米粉100g+玉米淀粉30g+白糖20g+牛奶180g搅拌过滤，蒸箱40分钟，加黄油10g揉匀冷却'},{title:'制作奶酪',content:'奶油奶酪150g+白糖15g+淡奶油5g+脆波波150g拌匀'},{title:'组装',content:'第一片：60g麻薯拉到面包大小，抹奶酪150g，放草莓5颗。第二片：60g麻薯拉开，抹奶酪150g。翻盖打包'}]},
+  { id:'moligingtip', name:'茉莉青提奶酪', cat:'甜品', kcal:420, bread:'菠菜吐司×3片',
+    ingredients:[['安佳奶油奶酪',150,'g',CAT.DAIRY],['白糖',15,'g',CAT.SAUCE],['茉莉糖浆',5.1,'g',CAT.SAUCE],['薄荷糖浆',3,'g',CAT.SAUCE],['茉莉花干',1,UNIT.PORTION,CAT.MISC],['青提',9,'颗',CAT.FRUIT],['三象糯米粉',50,'g',CAT.GRAIN],['玉米淀粉',15,'g',CAT.GRAIN],['白糖（麻薯）',10,'g',CAT.SAUCE],['牛奶（麻薯）',90,'g',CAT.DAIRY],['黄油（麻薯）',5,'g',CAT.DAIRY],['菠菜吐司',3,'片',CAT.BREAD]],
+    steps:[{title:'制作茉莉奶酪',content:'奶油奶酪150g+白糖15g+茉莉糖浆5.1g+薄荷糖浆3g+茉莉花干拌匀'},{title:'制作麻薯',content:'糯米粉50g+玉米淀粉15g+白糖10g+牛奶90g蒸40分钟，加黄油5g揉匀'},{title:'组装',content:'第一片：茉莉奶酪150g+青提9颗。第二片：麻薯80g拉开。第三片翻盖叠加打包'}]},
+  { id:'mango_yuni', name:'芒果芋泥血糯米', cat:'水果', kcal:502, bread:'南瓜吐司×3片',
+    ingredients:[['鲜芒果',1,UNIT.PORTION,CAT.FRUIT],['安佳奶油奶酪',100,'g',CAT.DAIRY],['白糖',15,'g',CAT.SAUCE],['淡奶油',16,'g',CAT.DAIRY],['芋泥（成品）',110,'g',CAT.GRAIN],['芋头',100,'g',CAT.GRAIN],['紫薯',20,'g',CAT.GRAIN],['血糯米（干）',50,'g',CAT.GRAIN],['白糯米（干）',30,'g',CAT.GRAIN],['黄油',5,'g',CAT.DAIRY],['白糖（糯米）',10,'g',CAT.SAUCE],['南瓜吐司',3,'片',CAT.BREAD]],
+    steps:[{title:'制作芋泥',content:'芋头100g+紫薯20g蒸40分钟，加白糖15g拌匀，冷却后少量多次加牛奶至绵密'},{title:'制作血糯米',content:'血糯米50g+白糯米30g煮熟加黄油5g+白糖10g焖15分钟冷却'},{title:'组装',content:'第一片：基础奶酪+芋泥+血糯米。第二片：基础奶酪+芒果片。第三片翻盖打包'}]},
+  { id:'thai_mango', name:'泰式芒果椰椰', cat:'水果', kcal:498, bread:'菠菜吐司×3片',
+    ingredients:[['鲜芒果',1,UNIT.PORTION,CAT.FRUIT],['白糯米（干）',200,'g',CAT.GRAIN],['椰浆',200,'g',CAT.MISC],['椰子粉',20,'g',CAT.SAUCE],['白糖',20,'g',CAT.SAUCE],['安佳奶油奶酪',100,'g',CAT.DAIRY],['白糖（奶酪）',15,'g',CAT.SAUCE],['淡奶油',16,'g',CAT.DAIRY],['菠菜吐司',3,'片',CAT.BREAD]],
+    steps:[{title:'制作椰浆糯米',content:'白糯米200g煮熟，椰浆200g+椰子粉20g+白糖20g煮开过滤拌入糯米冷却'},{title:'制作基础奶酪',content:'奶油奶酪100g+白糖15g+淡奶油16g搅拌顺滑'},{title:'组装',content:'第一片：基础奶酪+椰浆糯米120g。第二片：基础奶酪+芒果片交叉叠加。第三片翻盖打包'}]},
+  { id:'blueberry_tangerine', name:'奶酪蓝莓甜橘', cat:'水果', kcal:356, bread:'菠菜吐司×3片',
+    ingredients:[['安佳奶油奶酪（哈密瓜）',90,'g',CAT.DAIRY],['白糖（哈密瓜）',9,'g',CAT.SAUCE],['哈密瓜粉',9,'g',CAT.SAUCE],['安佳奶油奶酪（草莓）',60,'g',CAT.DAIRY],['白糖（草莓）',6,'g',CAT.SAUCE],['红颜草莓粉',6,'g',CAT.SAUCE],['橘子',2,'个',CAT.FRUIT],['蓝莓',11,'颗',CAT.FRUIT],['菠菜吐司',3,'片',CAT.BREAD]],
+    steps:[{title:'制作双色奶酪',content:'哈密瓜奶酪：奶油奶酪90g+白糖9g+哈密瓜粉9g。草莓奶酪：奶油奶酪60g+白糖6g+草莓粉6g'},{title:'备水果',content:'橘子2个剥皮对半掰开，蓝莓清洗干净'},{title:'组装',content:'第一片：哈密瓜奶酪70g+橘子。第二片：草莓奶酪60g+蓝莓10-12颗。第三片翻盖打包'}]},
+  { id:'yangzhi_ganluo', name:'杨枝甘露', cat:'水果', kcal:410, bread:'南瓜吐司×3片',
+    ingredients:[['鲜芒果',1,UNIT.PORTION,CAT.FRUIT],['安佳奶油奶酪',80,'g',CAT.DAIRY],['白糖',8,'g',CAT.SAUCE],['杨枝甘露粉',8,'g',CAT.SAUCE],['柚子粒',160,'g',CAT.SAUCE],['南瓜吐司',3,'片',CAT.BREAD]],
+    steps:[{title:'制作杨枝甘露奶酪',content:'奶油奶酪80g+白糖8g+杨枝甘露粉8g+柚子粒120g拌匀'},{title:'备芒果',content:'时令芒果贴核切片，过糖水防氧化'},{title:'组装',content:'第一片：杨枝甘露奶酪150g+柚子粒40g。第二片：基础奶酪+芒果片。第三片翻盖打包'}]},
+  { id:'wugu_fengdeng', name:'五谷丰登', cat:'特色', kcal:544, bread:'全麦吐司×3片',
+    ingredients:[['贝贝南瓜',5,'段',CAT.VEGGIE],['铁棍山药',2,'段',CAT.VEGGIE],['红薯',3,'段',CAT.VEGGIE],['紫薯',3,'段',CAT.VEGGIE],['荔甫芋头',3,'块',CAT.VEGGIE],['脆肉松（焦福记）',70,'g',CAT.PROTEIN],['安佳奶油奶酪',100,'g',CAT.DAIRY],['白糖',15,'g',CAT.SAUCE],['淡奶油',16,'g',CAT.DAIRY],['全麦吐司',3,'片',CAT.BREAD]],
+    steps:[{title:'处理五谷',content:'南瓜切段，山药/红薯/紫薯切吐司长度，芋头切块，全部蒸箱蒸40分钟冷却'},{title:'制作基础奶酪',content:'奶油奶酪100g+白糖15g+淡奶油15-18g搅拌至顺滑'},{title:'组装',content:'第一片：抹基础奶酪，按角摆南瓜+山药+红薯+紫薯+芋头填满，顶部抹奶酪60-80g。第二片：脆酥松60-80g。第三片翻盖叠加打包'}]},
+]
+
+const NUTRITION = [
+  {name:'低脂鸡丝贡菜',cat:'咸鲜',kcal:298,prot:34,fat:8,carb:28,fiber:4.2,bread:'南瓜吐司'},
+  {name:'蟹柳滑蛋',cat:'咸鲜',kcal:368,prot:24,fat:12,carb:38,fiber:3.8,bread:'菠菜吐司'},
+  {name:'奶酪蓝莓甜橘',cat:'水果',kcal:356,prot:9,fat:15,carb:46,fiber:3.2,bread:'菠菜吐司'},
+  {name:'蓝莓啵啵',cat:'甜品',kcal:392,prot:10,fat:16,carb:52,fiber:2.8,bread:'紫薯吐司'},
+  {name:'土豆泥烟熏鸡',cat:'咸鲜',kcal:412,prot:28,fat:14,carb:45,fiber:4.5,bread:'全麦吐司'},
+  {name:'杨枝甘露',cat:'水果',kcal:410,prot:9,fat:15,carb:58,fiber:2.6,bread:'南瓜吐司'},
+  {name:'茉莉青提奶酪',cat:'甜品',kcal:420,prot:10,fat:17,carb:54,fiber:2.4,bread:'菠菜吐司'},
+  {name:'麻薯草莓',cat:'甜品',kcal:446,prot:9,fat:18,carb:58,fiber:2.5,bread:'菠菜吐司×2'},
+  {name:'安格斯牛肉',cat:'咸鲜',kcal:458,prot:35,fat:18,carb:38,fiber:4.0,bread:'全麦吐司'},
+  {name:'奶冻抹茶血糯米',cat:'甜品',kcal:468,prot:10,fat:16,carb:65,fiber:2.2,bread:'紫薯吐司'},
+  {name:'经典鸡排',cat:'咸鲜',kcal:486,prot:32,fat:20,carb:42,fiber:3.5,bread:'南瓜吐司'},
+  {name:'奶酪芋泥血糯米',cat:'甜品',kcal:486,prot:12,fat:18,carb:68,fiber:3.0,bread:'紫薯吐司'},
+  {name:'芒果芋泥血糯米',cat:'水果',kcal:502,prot:10,fat:16,carb:72,fiber:3.8,bread:'南瓜吐司'},
+  {name:'泰式芒果椰椰',cat:'水果',kcal:498,prot:11,fat:16,carb:74,fiber:2.8,bread:'菠菜吐司'},
+  {name:'日式厚切猪扒',cat:'咸鲜',kcal:512,prot:38,fat:22,carb:40,fiber:3.2,bread:'南瓜吐司'},
+  {name:'芋泥鸡排',cat:'咸鲜',kcal:524,prot:28,fat:20,carb:58,fiber:3.4,bread:'紫薯吐司'},
+  {name:'五谷丰登',cat:'特色',kcal:544,prot:14,fat:20,carb:76,fiber:5.8,bread:'全麦吐司'},
+]
+
+const CAT_COLORS = {
+  '咸鲜':'background:#FFF3EC;color:#E8834A', '甜品':'background:#F5F0FF;color:#7B5EA7',
+  '水果':'background:#EFF6FF;color:#4A7FA5', '特色':'background:#FFF0F0;color:#C94040',
+}
+
+// ── 初始化渲染 ──
 function initApp() {
-  renderOrderList()
-  renderProducts()
-  renderRecipes()
-  renderNutrition()
-  loadFeieyunConfig()
-  // 加载Claude配置
-  const key = localStorage.getItem('claude_apikey') || ''
-  if (key) document.getElementById('claude-apikey').value = key
-  updateClaudeStatus()
+  renderOrderList(); renderProducts(); renderRecipes(); renderNutrition()
 }
 
 // ── 订单录入 ──
 function renderOrderList() {
-  const el = document.getElementById('order-list')
-  el.innerHTML = PRODUCTS.map(p => `
-    <div class="order-item" id="order-${p.id}">
+  document.getElementById('order-list').innerHTML = PRODUCTS.map(p => `
+    <div class="order-item">
       <div>
-        <div class="order-item-name">${p.name}</div>
-        <div class="order-item-kcal" style="${CAT_COLORS[p.cat] || ''}; font-size:9px;font-weight:700;padding:1px 6px;display:inline-block">${p.cat}</div>
-        <span class="order-item-kcal" style="margin-left:6px">${p.kcal} kcal · ${p.bread}</span>
+        <div style="font-weight:700;font-size:13px">${p.name}</div>
+        <span style="${CAT_COLORS[p.cat]||''};font-size:9px;font-weight:700;padding:1px 6px;display:inline-block">${p.cat}</span>
+        <span style="font-size:10px;color:#888;margin-left:6px">${p.kcal} kcal · ${p.bread}</span>
       </div>
       <div class="qty-ctrl">
         <button class="qty-btn" onclick="changeQty('${p.id}',-1)">−</button>
         <input class="qty-input" type="number" min="0" max="99" value="0" id="qty-${p.id}" oninput="updateTotal()">
         <button class="qty-btn" onclick="changeQty('${p.id}',1)">+</button>
       </div>
-    </div>
-  `).join('')
+    </div>`).join('')
 }
 
 function changeQty(id, delta) {
@@ -1099,14 +983,9 @@ function clearAllQty() {
 
 // ── 备料计算 ──
 function calcPrep() {
-  const orders = PRODUCTS.map(p => ({
-    product: p,
-    qty: parseInt(document.getElementById('qty-' + p.id)?.value || 0)
-  })).filter(o => o.qty > 0)
-
+  const orders = PRODUCTS.map(p => ({ product: p, qty: parseInt(document.getElementById('qty-' + p.id)?.value || 0) })).filter(o => o.qty > 0)
   if (!orders.length) { showToast('请先录入订单数量', 'error'); return }
 
-  // 汇总食材
   const ingredMap = {}
   orders.forEach(({ product, qty }) => {
     product.ingredients.forEach(([name, amount, unit, cat]) => {
@@ -1117,504 +996,119 @@ function calcPrep() {
     })
   })
 
-  // 按分类归组
   const grouped = {}
   Object.values(ingredMap).forEach(item => {
     if (!grouped[item.cat]) grouped[item.cat] = []
     grouped[item.cat].push(item)
   })
 
-  // 更新摘要
-  document.getElementById('order-summary').innerHTML = orders
-    .map(o => `<span style="margin-right:16px"><b>${o.product.name}</b> × ${o.qty}</span>`)
-    .join('')
-
+  document.getElementById('order-summary').innerHTML = orders.map(o => `<span style="margin-right:16px"><b>${o.product.name}</b> × ${o.qty}</span>`).join('')
   const now = new Date()
-  document.getElementById('prep-meta').textContent =
-    `生成时间：${now.toLocaleString('zh-CN')} · 共 ${orders.length} 款 · 合计 ${orders.reduce((s,o)=>s+o.qty,0)} 份`
+  document.getElementById('prep-meta').textContent = `生成时间：${now.toLocaleString('zh-CN')} · ${orders.length} 款 · 合计 ${orders.reduce((s,o)=>s+o.qty,0)} 份`
 
-  // 渲染备料表
   const catOrder = [CAT.BREAD, CAT.PROTEIN, CAT.EGG, CAT.VEGGIE, CAT.FRUIT, CAT.DAIRY, CAT.GRAIN, CAT.SAUCE, CAT.MISC]
   let html = ''
   catOrder.forEach(cat => {
     if (!grouped[cat]) return
-    const items = grouped[cat].sort((a,b) => a.name.localeCompare(b.name))
     html += `<div class="prep-section">
       <div class="prep-category">${cat}</div>
-      ${items.map(item => {
-        const displayAmt = Number.isInteger(item.amount) ? item.amount : item.amount.toFixed(2)
-        const isApprox = item.unit === UNIT.PORTION
+      ${grouped[cat].sort((a,b)=>a.name.localeCompare(b.name)).map(item => {
+        const amt = Number.isInteger(item.amount) ? item.amount : item.amount.toFixed(2)
         return `<div class="prep-item">
-          <div>
-            <div class="prep-name">${item.name}</div>
-            <div class="prep-sub">${[...new Set(item.detail)].join(' + ')}</div>
-          </div>
-          <div style="text-align:right">
-            <span class="prep-qty">${isApprox ? displayAmt : displayAmt}</span>
-            <span class="prep-unit">${item.unit}</span>
-          </div>
+          <div><div class="prep-name">${item.name}</div><div class="prep-sub">${[...new Set(item.detail)].join(' + ')}</div></div>
+          <div style="text-align:right"><span class="prep-qty">${amt}</span><span class="prep-unit"> ${item.unit}</span></div>
         </div>`
       }).join('')}
     </div>`
   })
-
   document.getElementById('prep-table').innerHTML = html
   document.getElementById('prep-result').style.display = 'block'
   document.getElementById('prep-result').scrollIntoView({ behavior: 'smooth' })
-
-  // 保存历史
   saveHistory(orders, grouped)
   showToast('备料单已生成', 'success')
 }
 
 // ── 历史记录 ──
 function saveHistory(orders, grouped) {
-  const history = JSON.parse(localStorage.getItem('oa_history') || '[]')
-  history.unshift({
-    date: new Date().toLocaleString('zh-CN'),
-    orders: orders.map(o => ({ name: o.product.name, qty: o.qty })),
-    total: orders.reduce((s, o) => s + o.qty, 0),
-    ingredCount: Object.keys(grouped).length,
-  })
-  localStorage.setItem('oa_history', JSON.stringify(history.slice(0, 30)))
+  const h = JSON.parse(localStorage.getItem('oa_history') || '[]')
+  h.unshift({ date: new Date().toLocaleString('zh-CN'), orders: orders.map(o => ({ name: o.product.name, qty: o.qty })), total: orders.reduce((s,o)=>s+o.qty,0) })
+  localStorage.setItem('oa_history', JSON.stringify(h.slice(0, 30)))
 }
 
 function renderHistory() {
-  const history = JSON.parse(localStorage.getItem('oa_history') || '[]')
+  const h = JSON.parse(localStorage.getItem('oa_history') || '[]')
   const el = document.getElementById('history-list')
-  if (!history.length) {
-    el.innerHTML = '<div style="padding:32px;text-align:center;color:#999;font-size:13px">暂无历史记录</div>'
-    return
-  }
-  el.innerHTML = history.map((h, i) => `
-    <div class="history-item">
-      <div>
-        <div class="history-date">${h.date}</div>
-        <div class="history-summary">${h.orders.map(o => `${o.name}×${o.qty}`).join(' · ')}</div>
-      </div>
-      <div style="text-align:right">
-        <div class="history-total">${h.total}</div>
-        <div style="font-size:9px;color:#999">份</div>
-      </div>
-    </div>
-  `).join('')
+  el.innerHTML = !h.length ? '<div style="padding:32px;text-align:center;color:#999">暂无历史记录</div>'
+    : h.map(r => `<div class="history-item">
+        <div><div style="font-weight:700;font-size:13px">${r.date}</div>
+        <div style="font-size:11px;color:#888">${r.orders.map(o=>`${o.name}×${o.qty}`).join(' · ')}</div></div>
+        <div style="text-align:right"><div class="history-total">${r.total}</div><div style="font-size:9px;color:#999">份</div></div>
+      </div>`).join('')
 }
 
 // ── 产品手册 ──
 function renderProducts(filter = 'all') {
-  const el = document.getElementById('product-grid')
   const filtered = filter === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.cat === filter)
-  el.innerHTML = filtered.map(p => `
+  document.getElementById('product-grid').innerHTML = filtered.map(p => `
     <div class="product-card">
       <div class="product-name">${p.name}</div>
-      <div>
-        <span class="product-cat" style="${CAT_COLORS[p.cat] || ''}">${p.cat}</span>
-        <span style="font-size:10px;color:#999;margin-left:6px">${p.kcal} kcal</span>
-      </div>
-      <div class="product-ingredients">
-        ${p.bread}<br>
-        ${p.ingredients.map(i => i[0]).join('、')}
-      </div>
-    </div>
-  `).join('')
+      <div><span style="${CAT_COLORS[p.cat]||''};font-size:9px;font-weight:700;padding:2px 6px;display:inline-block">${p.cat}</span>
+      <span style="font-size:10px;color:#999;margin-left:6px">${p.kcal} kcal</span></div>
+      <div style="font-size:11px;color:#666;margin-top:6px;line-height:1.7">${p.bread}<br>${p.ingredients.map(i=>i[0]).join('、')}</div>
+    </div>`).join('')
 }
 
 function filterProducts(cat, btn) {
-  document.querySelectorAll('#page-products .btn').forEach(b => {
-    b.className = b.className.replace('btn-black', 'btn-ghost')
-  })
-  btn.className = btn.className.replace('btn-ghost', 'btn-black')
+  document.querySelectorAll('#page-products .btn').forEach(b => b.className = b.className.replace('btn-black','btn-ghost'))
+  btn.className = btn.className.replace('btn-ghost','btn-black')
   renderProducts(cat)
 }
 
 // ── 制作流程 ──
 function renderRecipes() {
-  const el = document.getElementById('recipe-list')
-  el.innerHTML = PRODUCTS.map(p => `
+  document.getElementById('recipe-list').innerHTML = PRODUCTS.map(p => `
     <div class="recipe-card">
       <div class="recipe-header" onclick="toggleRecipe('${p.id}')">
         <div style="display:flex;align-items:center;gap:12px">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.04em">${p.name}</div>
-          <span style="${CAT_COLORS[p.cat] || ''};font-size:9px;font-weight:700;padding:2px 7px;letter-spacing:.1em">${p.cat}</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.04em">${p.name}</span>
+          <span style="${CAT_COLORS[p.cat]||''};font-size:9px;font-weight:700;padding:2px 7px">${p.cat}</span>
           <span style="font-size:11px;color:#666">${p.bread}</span>
         </div>
-        <span style="color:#555;font-size:18px" id="arrow-${p.id}">▸</span>
+        <span id="arrow-${p.id}" style="color:#555;font-size:18px">▸</span>
       </div>
       <div class="recipe-body" id="body-${p.id}">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
           <div>
             <div class="recipe-section-title">食材清单</div>
-            ${p.ingredients.map(i => `
-              <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray);font-size:12px">
-                <span>${i[0]}</span>
-                <span style="font-weight:700;color:var(--orange)">${i[1]} ${i[2]}</span>
-              </div>
-            `).join('')}
+            ${p.ingredients.map(i=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray);font-size:12px"><span>${i[0]}</span><span style="font-weight:700;color:var(--orange)">${i[1]} ${i[2]}</span></div>`).join('')}
           </div>
           <div>
             <div class="recipe-section-title">制作步骤</div>
-            ${p.steps.map((s, i) => `
-              <div class="step-item">
-                <div class="step-num">${i+1}</div>
-                <div>
-                  <div style="font-size:11px;font-weight:700;margin-bottom:2px">${s.title}</div>
-                  <div class="step-text">${s.content}</div>
-                </div>
-              </div>
-            `).join('')}
+            ${p.steps.map((s,i)=>`<div class="step-item"><div class="step-num">${i+1}</div><div><div style="font-size:11px;font-weight:700;margin-bottom:2px">${s.title}</div><div style="font-size:11px;color:#555;line-height:1.6">${s.content}</div></div></div>`).join('')}
           </div>
         </div>
       </div>
-    </div>
-  `).join('')
+    </div>`).join('')
 }
 
 function toggleRecipe(id) {
-  const body = document.getElementById('body-' + id)
-  const arrow = document.getElementById('arrow-' + id)
-  const isOpen = body.classList.contains('open')
-  body.classList.toggle('open', !isOpen)
-  arrow.textContent = isOpen ? '▸' : '▾'
+  document.getElementById('body-'+id).classList.toggle('open')
+  document.getElementById('arrow-'+id).textContent = document.getElementById('body-'+id).classList.contains('open') ? '▾' : '▸'
 }
 
 // ── 营养热量 ──
 function renderNutrition() {
-  const tbody = document.getElementById('nutrition-tbody')
-  const sorted = [...NUTRITION].sort((a, b) => a.kcal - b.kcal)
-  tbody.innerHTML = sorted.map(n => {
-    const kcalColor = n.kcal < 400 ? 'color:#4A7C59;font-weight:900' : n.kcal >= 500 ? 'color:#C94040;font-weight:900' : ''
-    const protColor = n.prot >= 30 ? 'color:#4A7C59;font-weight:700' : ''
-    return `<tr>
+  document.getElementById('nutrition-tbody').innerHTML = [...NUTRITION].sort((a,b)=>a.kcal-b.kcal).map(n=>`
+    <tr>
       <td style="font-weight:700">${n.name}</td>
-      <td><span style="${CAT_COLORS[n.cat]||'background:#eee'};font-size:9px;font-weight:700;padding:2px 6px">${n.cat}</span></td>
-      <td style="${kcalColor}">${n.kcal}</td>
-      <td style="${protColor}">${n.prot}</td>
-      <td>${n.fat}</td>
-      <td>${n.carb}</td>
+      <td><span style="${CAT_COLORS[n.cat]||''};font-size:9px;font-weight:700;padding:2px 6px">${n.cat}</span></td>
+      <td style="${n.kcal<400?'color:#4A7C59;font-weight:900':n.kcal>=500?'color:#C94040;font-weight:900':''}">${n.kcal}</td>
+      <td style="${n.prot>=30?'color:#4A7C59;font-weight:700':''}">${n.prot}</td>
+      <td>${n.fat}</td><td>${n.carb}</td>
       <td style="color:#4A7C59">${n.fiber}</td>
       <td style="font-size:11px;color:#666">${n.bread}</td>
-    </tr>`
-  }).join('')
+    </tr>`).join('')
 }
-
-// ── 方舟 API Key 配置（图片识别用） ──
-function saveClaudeConfig() {
-  const key = document.getElementById('claude-apikey').value.trim()
-  localStorage.setItem('claude_apikey', key)
-  updateClaudeStatus()
-}
-
-function updateClaudeStatus() {
-  const key = localStorage.getItem('claude_apikey') || ''
-  const dot = document.getElementById('claude-dot')
-  const text = document.getElementById('claude-status-text')
-  if (dot && text) {
-    if (key.length > 10) {
-      dot.className = 'status-dot dot-green'
-      text.textContent = '已配置 · glm-4.6v'
-    } else {
-      dot.className = 'status-dot dot-gray'
-      text.textContent = '未配置（请填写方舟 API Key）'
-    }
-  }
-}
-
-// ── 图片OCR识别 ──
-let ocrData = {} // 识别结果缓存：{产品id: 数量}
-
-function handleOcrUpload(event) {
-  const file = event.target.files[0]
-  if (!file) return
-
-  const apiKey = localStorage.getItem('claude_apikey') || ''
-  if (!apiKey || apiKey.length <= 10) {
-    showToast('请先在「设置」页配置方舟 API Key', 'error', 4000)
-    switchPage('settings')
-    return
-  }
-
-  // 显示预览
-  const reader = new FileReader()
-  reader.onload = e => {
-    document.getElementById('ocr-preview').style.display = 'block'
-    document.getElementById('ocr-img').src = e.target.result
-    document.getElementById('ocr-status').textContent = '🔍 AI 识别中，请稍候…'
-    document.getElementById('ocr-result-list').innerHTML = ''
-    document.getElementById('ocr-actions').style.display = 'none'
-    // 调用 Claude Vision
-    recognizeOrder(e.target.result.split(',')[1], file.type || 'image/jpeg', apiKey)
-  }
-  reader.readAsDataURL(file)
-}
-
-async function recognizeOrder(base64, mediaType, apiKey) {
-  const productNames = PRODUCTS.map(p => p.name).join('、')
-
-  const prompt = `你是一个餐厅备货单识别助手。请识别图片中的订单信息，提取出每个产品的名称和数量。
-
-系统中已有的产品列表（请尽量匹配这些名称）：
-${productNames}
-
-请以JSON格式返回结果，格式如下：
-{"orders":[{"name":"产品名称","qty":数量}],"note":"备注"}
-
-注意：只返回JSON，不要其他文字；产品名称尽量匹配系统产品列表；数量必须是整数。`
-
-  try {
-    const res = await fetch('https://api.aiyungc.cn/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'glm-4.6v',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: 'image_url',
-              image_url: {
-                url: `data:${mediaType};base64,${base64}`
-              }
-            },
-            { type: 'text', text: prompt }
-          ]
-        }]
-      })
-    })
-
-    if (!res.ok) {
-      const err = await res.text()
-      throw new Error(`API错误 ${res.status}: ${err}`)
-    }
-
-    const data = await res.json()
-    const text = data.choices?.[0]?.message?.content || ''
-    const cleaned = text.replace(/```json|```/g, '').trim()
-    const parsed = JSON.parse(cleaned)
-    showOcrResult(parsed)
-  } catch (err) {
-    document.getElementById('ocr-status').innerHTML =
-      `<span style="color:var(--red)">❌ 识别失败：${err.message}</span>`
-    showToast('识别失败，请检查图片或 API Key', 'error')
-  }
-}
-
-function showOcrResult(parsed) {
-  const orders = parsed.orders || []
-  ocrData = {}
-
-  if (!orders.length) {
-    document.getElementById('ocr-status').innerHTML =
-      '<span style="color:var(--red)">未识别到有效订单，请重试</span>'
-    return
-  }
-
-  // 模糊匹配产品
-  let matched = 0, unmatched = []
-  orders.forEach(o => {
-    const product = fuzzyMatchProduct(o.name)
-    if (product) {
-      ocrData[product.id] = (ocrData[product.id] || 0) + o.qty
-      matched++
-    } else {
-      unmatched.push(o.name)
-    }
-  })
-
-  // 渲染结果
-  let html = ''
-  Object.entries(ocrData).forEach(([id, qty]) => {
-    const p = PRODUCTS.find(p => p.id === id)
-    if (p) html += `<div style="padding:2px 0">✓ <b>${p.name}</b> × <b style="color:var(--orange)">${qty}</b></div>`
-  })
-  if (unmatched.length) {
-    html += `<div style="color:#888;margin-top:4px">未匹配：${unmatched.join('、')}</div>`
-  }
-  if (parsed.note) {
-    html += `<div style="color:#888;font-size:11px;margin-top:4px">备注：${parsed.note}</div>`
-  }
-
-  document.getElementById('ocr-result-list').innerHTML = html
-  document.getElementById('ocr-status').innerHTML =
-    `<span style="color:var(--green)">✓ 识别完成，共 ${matched} 款产品${unmatched.length ? `，${unmatched.length} 项未匹配` : ''}</span>`
-  document.getElementById('ocr-actions').style.display = 'flex'
-  showToast(`识别成功！${matched} 款产品`, 'success')
-}
-
-// 模糊匹配：先精确，再包含，再相似
-function fuzzyMatchProduct(name) {
-  if (!name) return null
-  const n = name.trim()
-  // 1. 精确匹配
-  let p = PRODUCTS.find(p => p.name === n)
-  if (p) return p
-  // 2. 包含匹配（系统名包含识别名的关键字）
-  p = PRODUCTS.find(p => n.includes(p.name) || p.name.includes(n))
-  if (p) return p
-  // 3. 关键词匹配（取识别名前两个字）
-  const keyword = n.slice(0, 2)
-  p = PRODUCTS.find(p => p.name.includes(keyword))
-  if (p) return p
-  return null
-}
-
-function applyOcrResult() {
-  if (!Object.keys(ocrData).length) return
-  // 先清空
-  PRODUCTS.forEach(p => {
-    const el = document.getElementById('qty-' + p.id)
-    if (el) el.value = 0
-  })
-  // 填入识别结果
-  Object.entries(ocrData).forEach(([id, qty]) => {
-    const el = document.getElementById('qty-' + id)
-    if (el) el.value = qty
-  })
-  updateTotal()
-  showToast('已自动填入识别结果，请核对后生成备料单', 'success', 4000)
-  // 滚动到订单列表
-  document.getElementById('order-list').scrollIntoView({ behavior: 'smooth' })
-}
-
-function resetOcr() {
-  document.getElementById('ocr-file').value = ''
-  document.getElementById('ocr-preview').style.display = 'none'
-  document.getElementById('ocr-img').src = ''
-  ocrData = {}
-}
-
-// ── 飞鹅打印机 ──
-function loadFeieyunConfig() {
-  const cfg = JSON.parse(localStorage.getItem('feie_config') || '{}')
-  if (cfg.appid) document.getElementById('feie-appid').value = cfg.appid
-  if (cfg.appkey) document.getElementById('feie-appkey').value = cfg.appkey
-  if (cfg.sn) document.getElementById('feie-sn').value = cfg.sn
-  if (cfg.key) document.getElementById('feie-key').value = cfg.key
-  updateFeieyunStatus()
-}
-
-function saveFeieyunConfig() {
-  const cfg = {
-    appid: document.getElementById('feie-appid').value,
-    appkey: document.getElementById('feie-appkey').value,
-    sn: document.getElementById('feie-sn').value,
-    key: document.getElementById('feie-key').value,
-  }
-  localStorage.setItem('feie_config', JSON.stringify(cfg))
-  updateFeieyunStatus()
-}
-
-function updateFeieyunStatus() {
-  const cfg = JSON.parse(localStorage.getItem('feie_config') || '{}')
-  const dot = document.getElementById('feie-dot')
-  const text = document.getElementById('feie-status-text')
-  if (cfg.appid && cfg.appkey && cfg.sn && cfg.key) {
-    dot.className = 'status-dot dot-green'
-    text.textContent = '已配置'
-  } else {
-    dot.className = 'status-dot dot-gray'
-    text.textContent = '未配置（请填写开发者信息）'
-  }
-}
-
-async function testFeieyun() {
-  const cfg = JSON.parse(localStorage.getItem('feie_config') || '{}')
-  if (!cfg.appid || !cfg.appkey || !cfg.sn) {
-    showToast('请先填写完整的飞鹅配置', 'error'); return
-  }
-  showToast('正在测试连接…', 'info')
-  // 飞鹅API需要服务端签名（防止跨域），此处提示用户通过服务端接口调用
-  showToast('飞鹅API需服务端中转，请确保已申请开发者账号后刷新', 'info', 5000)
-}
-
-async function printFeieyun() {
-  const cfg = JSON.parse(localStorage.getItem('feie_config') || '{}')
-  if (!cfg.appid || !cfg.appkey || !cfg.sn || !cfg.key) {
-    showToast('请先在设置页配置飞鹅打印机信息', 'error')
-    switchPage('settings'); return
-  }
-
-  // 生成打印内容
-  const content = buildPrintContent()
-  showToast('正在发送打印任务…', 'info')
-
-  try {
-    // 飞鹅API签名：STIME + MD5(APPID + APPKEY + STIME)
-    const stime = Math.floor(Date.now() / 1000).toString()
-    const signStr = cfg.appid + cfg.appkey + stime
-
-    // 调用飞鹅API（实际需要CORS代理或服务端，这里直接调用）
-    const params = new URLSearchParams({
-      user: cfg.appid,
-      ukey: cfg.appkey,
-      stime: stime,
-      sig: await md5(signStr),
-      apiname: 'Open_printMsg',
-      sn: cfg.sn,
-      key: cfg.key,
-      content: content,
-      times: '1',
-    })
-
-    const res = await fetch('https://api.feieyun.cn/Api/Open/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: params.toString(),
-    })
-    const data = await res.json()
-    if (data.ret === 0) {
-      showToast('✓ 打印任务已发送！', 'success', 4000)
-    } else {
-      showToast(`打印失败：${data.msg || '请检查配置'}`, 'error', 5000)
-    }
-  } catch (e) {
-    showToast('飞鹅API调用失败，可能需要服务端代理（CORS限制）', 'error', 5000)
-  }
-}
-
-function buildPrintContent() {
-  const meta = document.getElementById('prep-meta').textContent
-  const summary = document.getElementById('order-summary').textContent
-
-  let content = `<CB>莱珂珍妮备料单</CB>\n`
-  content += `<C>${meta}</C>\n`
-  content += `<L>--------------------------------</L>\n`
-  content += `<B>本单订单：</B>\n${summary}\n`
-  content += `<L>--------------------------------</L>\n`
-
-  const catOrder = [CAT.BREAD, CAT.PROTEIN, CAT.EGG, CAT.VEGGIE, CAT.FRUIT, CAT.DAIRY, CAT.GRAIN, CAT.SAUCE, CAT.MISC]
-  const sections = document.querySelectorAll('#prep-table .prep-section')
-  sections.forEach(sec => {
-    const cat = sec.querySelector('.prep-category')?.textContent || ''
-    content += `\n<B>${cat}</B>\n`
-    sec.querySelectorAll('.prep-item').forEach(item => {
-      const name = item.querySelector('.prep-name')?.textContent || ''
-      const qty = item.querySelector('.prep-qty')?.textContent || ''
-      const unit = item.querySelector('.prep-unit')?.textContent || ''
-      content += `${name} <RIGHT>${qty}${unit}</RIGHT>\n`
-    })
-  })
-  content += `\n<L>--------------------------------</L>\n`
-  content += `<C>莱珂珍妮 · ${new Date().toLocaleDateString('zh-CN')}</C>\n`
-  return content
-}
-
-// 简单MD5实现（飞鹅签名用）
-async function md5(str) {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(str)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-  // 飞鹅用MD5，fallback用内置
-  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
-}
-
-// 键盘回车登录
-document.getElementById('loginPwd').addEventListener('keydown', e => {
-  if (e.key === 'Enter') doLogin()
-})
 </script>
 </body>
 </html>
