@@ -830,6 +830,10 @@ function parseOcrText(text) {
     .replace(/贝由/g, '贝贝')       // 贝由南瓜→贝贝南瓜
     .replace(/\s*三\s*明\s*治/g, '三明治')  // 三 明 治→三明治
 
+  // 调试：显示清洗后的每一行
+  const debugLines = cleaned.split('\n').map((l,i) => `${i+1}: ${l.trim()}`).filter(l=>l.length>3).join('\n')
+  alert('清洗后各行：\n' + debugLines.slice(0, 800))
+
   // 别名映射：外卖平台名称关键词 → 系统产品ID
   const ALIAS_MAP = [
     { keywords: ['低脂土豆泥烟熏鸡','土豆泥烟熏鸡','烟熏鸡三明治','低脂土豆'], id: 'tudouyuxunji' },
