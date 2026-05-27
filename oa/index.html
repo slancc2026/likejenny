@@ -848,14 +848,56 @@ async function recognizeOrder(base64, mediaType, apiKey) {
     if (!res.ok) throw new Error(`API错误 ${res.status}: ${await res.text()}`)
     const data = await res.json()
     const text = data.content?.[0]?.text || ''
-    const cleaned = text
-      .replace(/```json|```/g, '')  // 去掉 markdown 代码块
-      .replace(/[\x00-\x1F\x7F]/g, m => m === '\n' || m === '\r' || m === '\t' ? '' : '') // 去掉控制字符
-      .trim()
-    // 提取第一个完整的 JSON 对象（防止模型在JSON前后加了多余文字）
-    const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('未找到有效的JSON内容')
-    const parsed = JSON.parse(jsonMatch[0])
+    // 多重解析策略，防止模型返回格式不规范
+    let parsed = null
+
+    // 策略1：标准JSON解析（清洗控制字符后）
+    try {
+      const cleaned = text
+        .replace(/```json|```/g, '')
+        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // 去控制字符但保留\n\r\t
+        .trim()
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
+      if (jsonMatch) parsed = JSON.parse(jsonMatch[0])
+    } catch(e) {}
+
+    // 策略2：修复常见JSON错误后重试
+    if (!parsed) {
+      try {
+        const fixed = text
+          .replace(/```json|```/g, '')
+          .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+          .replace(/,\s*([}\]])/g, '$1')   // 去掉尾逗号
+          .replace(/([{,]\s*)(\w+):/g, '$1"$2":')  // 给没加引号的key加引号
+          .trim()
+        const jsonMatch = fixed.match(/\{[\s\S]*\}/)
+        if (jsonMatch) parsed = JSON.parse(jsonMatch[0])
+      } catch(e) {}
+    }
+
+    // 策略3：正则直接从文本里提取「产品名 × 数量」格式
+    if (!parsed) {
+      const orders = []
+      // 匹配各种格式：产品名 x2 / 产品名×2 / 产品名 2份 / "name":"xxx","qty":2
+      const patterns = [
+        /["']?name["']?\s*[:：]\s*["']?([^"',\n]+?)["']?\s*[,，]\s*["']?qty["']?\s*[:：]\s*(\d+)/g,
+        /([^\n×x\d]{2,12})[×x]\s*(\d+)/g,
+        /([^\n\d：:]{2,12})\s+(\d+)\s*份/g,
+      ]
+      for (const pattern of patterns) {
+        let m
+        while ((m = pattern.exec(text)) !== null) {
+          const name = m[1].trim().replace(/^[•·\-\s]+/, '')
+          const qty = parseInt(m[2])
+          if (name && qty > 0 && qty < 100) orders.push({ name, qty })
+        }
+        if (orders.length > 0) break
+      }
+      if (orders.length > 0) parsed = { orders }
+    }
+
+    if (!parsed || !parsed.orders) throw new Error('无法解析识别结果，请重试')
+    showOcrResult(parsed)
     showOcrResult(parsed)
   } catch (err) {
     document.getElementById('ocr-status').innerHTML = `<span style="color:var(--red)">❌ 识别失败：${err.message}</span>`
