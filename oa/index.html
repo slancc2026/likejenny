@@ -510,27 +510,35 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
       <div class="box">
         <div class="box-header">飞鹅打印机配置</div>
         <div class="box-body">
+          <div style="font-size:11px;color:#888;border-left:3px solid var(--yellow);padding:8px 10px;margin-bottom:16px;background:#fffdf0">
+            需要两套凭证：<b>① 开发者账号+UKEY</b>（去 open.feieyun.com 注册后台获取）<br>
+            <b>② 打印机SN+KEY</b>（打印机机身标签上）· 缺一不可
+          </div>
           <div class="settings-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
             <div>
-              <label class="label">APP ID</label>
-              <input class="input" id="s-feie-appid" placeholder="飞鹅开发者 APP ID">
+              <label class="label">开发者账号（注册邮箱/手机号）</label>
+              <input class="input" id="s-feie-appid" placeholder="open.feieyun.com 注册的账号">
             </div>
             <div>
-              <label class="label">APP KEY</label>
-              <input class="input" id="s-feie-appkey" type="password" placeholder="飞鹅开发者 APP KEY">
+              <label class="label">开发者 UKEY</label>
+              <input class="input" id="s-feie-appkey" type="password" placeholder="开放平台后台生成的 UKEY">
             </div>
             <div>
-              <label class="label">打印机 SN</label>
-              <input class="input" id="s-feie-sn" placeholder="打印机机身 SN 号">
+              <label class="label">打印机 SN 号</label>
+              <input class="input" id="s-feie-sn" placeholder="打印机机身标签上的 SN">
             </div>
             <div>
               <label class="label">打印机 KEY</label>
-              <input class="input" id="s-feie-key" type="password" placeholder="打印机 KEY">
+              <input class="input" id="s-feie-key" type="password" placeholder="打印机机身标签上的 KEY">
             </div>
           </div>
-          <button class="btn btn-black" onclick="saveSettings()">保存配置</button>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-black" onclick="saveSettings()">保存配置</button>
+            <button class="btn btn-ghost btn-sm" onclick="testPrint()">发送测试打印</button>
+          </div>
           <div style="font-size:11px;color:#888;margin-top:10px">
-            飞鹅开发者平台：<a href="https://open.feieyun.com" target="_blank" style="color:var(--green)">open.feieyun.com</a>
+            开发者平台：<a href="https://open.feieyun.com" target="_blank" style="color:var(--green)">open.feieyun.com</a>
+            · 注册后在「我的账户」获取 UKEY
           </div>
         </div>
       </div>
@@ -891,40 +899,128 @@ function resetOcr() {
 }
 
 // ══════════════════════════════════════════════
-// 飞鹅打印
+// 飞鹅打印（MD5签名 + Edge Function中转）
 // ══════════════════════════════════════════════
-async function printFeieyun() {
-  const { feie_appid, feie_appkey, feie_sn, feie_key } = oaSettings
-  if (!feie_appid || !feie_sn) {
-    showToast(isAdmin ? '请先在设置页配置飞鹅打印机信息' : '请联系管理员配置打印机', 'error'); return
+
+// 纯JS MD5 实现（飞鹅签名要求MD5，不能用SHA-256）
+function md5(str) {
+  function safeAdd(x,y){const l=(x&0xFFFF)+(y&0xFFFF);return((x>>16)+(y>>16)+(l>>16)<<16)|(l&0xFFFF)}
+  function rol(n,c){return(n<<c)|(n>>>(32-c))}
+  function cmn(q,a,b,x,s,t){return safeAdd(rol(safeAdd(safeAdd(a,q),safeAdd(x,t)),s),b)}
+  function ff(a,b,c,d,x,s,t){return cmn((b&c)|((~b)&d),a,b,x,s,t)}
+  function gg(a,b,c,d,x,s,t){return cmn((b&d)|(c&(~d)),a,b,x,s,t)}
+  function hh(a,b,c,d,x,s,t){return cmn(b^c^d,a,b,x,s,t)}
+  function ii(a,b,c,d,x,s,t){return cmn(c^(b|(~d)),a,b,x,s,t)}
+  const bs=((str.length+8)>>6)+1, m=new Array(bs*16).fill(0)
+  for(let i=0;i<str.length;i++) m[i>>2]|=str.charCodeAt(i)<<((i%4)*8)
+  m[str.length>>2]|=0x80<<((str.length%4)*8); m[bs*16-2]=str.length*8
+  let a=1732584193,b=-271733879,c=-1732584194,d=271733878
+  for(let i=0;i<m.length;i+=16){
+    const[pa,pb,pc,pd]=[a,b,c,d]
+    a=ff(a,b,c,d,m[i+0],7,-680876936);d=ff(d,a,b,c,m[i+1],12,-389564586);c=ff(c,d,a,b,m[i+2],17,606105819);b=ff(b,c,d,a,m[i+3],22,-1044525330)
+    a=ff(a,b,c,d,m[i+4],7,-176418897);d=ff(d,a,b,c,m[i+5],12,1200080426);c=ff(c,d,a,b,m[i+6],17,-1473231341);b=ff(b,c,d,a,m[i+7],22,-45705983)
+    a=ff(a,b,c,d,m[i+8],7,1770035416);d=ff(d,a,b,c,m[i+9],12,-1958414417);c=ff(c,d,a,b,m[i+10],17,-42063);b=ff(b,c,d,a,m[i+11],22,-1990404162)
+    a=ff(a,b,c,d,m[i+12],7,1804603682);d=ff(d,a,b,c,m[i+13],12,-40341101);c=ff(c,d,a,b,m[i+14],17,-1502002290);b=ff(b,c,d,a,m[i+15],22,1236535329)
+    a=gg(a,b,c,d,m[i+1],5,-165796510);d=gg(d,a,b,c,m[i+6],9,-1069501632);c=gg(c,d,a,b,m[i+11],14,643717713);b=gg(b,c,d,a,m[i+0],20,-373897302)
+    a=gg(a,b,c,d,m[i+5],5,-701558691);d=gg(d,a,b,c,m[i+10],9,38016083);c=gg(c,d,a,b,m[i+15],14,-660478335);b=gg(b,c,d,a,m[i+4],20,-405537848)
+    a=gg(a,b,c,d,m[i+9],5,568446438);d=gg(d,a,b,c,m[i+14],9,-1019803690);c=gg(c,d,a,b,m[i+3],14,-187363961);b=gg(b,c,d,a,m[i+8],20,1163531501)
+    a=gg(a,b,c,d,m[i+13],5,-1444681467);d=gg(d,a,b,c,m[i+2],9,-51403784);c=gg(c,d,a,b,m[i+7],14,1735328473);b=gg(b,c,d,a,m[i+12],20,-1926607734)
+    a=hh(a,b,c,d,m[i+5],4,-378558);d=hh(d,a,b,c,m[i+8],11,-2022574463);c=hh(c,d,a,b,m[i+11],16,1839030562);b=hh(b,c,d,a,m[i+14],23,-35309556)
+    a=hh(a,b,c,d,m[i+1],4,-1530992060);d=hh(d,a,b,c,m[i+4],11,1272893353);c=hh(c,d,a,b,m[i+7],16,-155497632);b=hh(b,c,d,a,m[i+10],23,-1094730640)
+    a=hh(a,b,c,d,m[i+13],4,681279174);d=hh(d,a,b,c,m[i+0],11,-358537222);c=hh(c,d,a,b,m[i+3],16,-722521979);b=hh(b,c,d,a,m[i+6],23,76029189)
+    a=hh(a,b,c,d,m[i+9],4,-640364487);d=hh(d,a,b,c,m[i+12],11,-421815835);c=hh(c,d,a,b,m[i+15],16,530742520);b=hh(b,c,d,a,m[i+2],23,-995338651)
+    a=ii(a,b,c,d,m[i+0],6,-198630844);d=ii(d,a,b,c,m[i+7],10,1126891415);c=ii(c,d,a,b,m[i+14],15,-1416354905);b=ii(b,c,d,a,m[i+5],21,-57434055)
+    a=ii(a,b,c,d,m[i+12],6,1700485571);d=ii(d,a,b,c,m[i+3],10,-1894986606);c=ii(c,d,a,b,m[i+10],15,-1051523);b=ii(b,c,d,a,m[i+1],21,-2054922799)
+    a=ii(a,b,c,d,m[i+8],6,1873313359);d=ii(d,a,b,c,m[i+15],10,-30611744);c=ii(c,d,a,b,m[i+6],15,-1560198380);b=ii(b,c,d,a,m[i+13],21,1309151649)
+    a=ii(a,b,c,d,m[i+4],6,-145523070);d=ii(d,a,b,c,m[i+11],10,-1120210379);c=ii(c,d,a,b,m[i+2],15,718787259);b=ii(b,c,d,a,m[i+9],21,-343485551)
+    a=safeAdd(a,pa);b=safeAdd(b,pb);c=safeAdd(c,pc);d=safeAdd(d,pd)
   }
-  const stime = Math.floor(Date.now() / 1000).toString()
-  const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(feie_appid + feie_appkey + stime))
-  const sig = Array.from(new Uint8Array(hashBuffer)).map(b=>b.toString(16).padStart(2,'0')).join('')
-  const content = buildPrintContent()
-  const params = new URLSearchParams({ user:feie_appid, ukey:feie_appkey, stime, sig, apiname:'Open_printMsg', sn:feie_sn, key:feie_key, content, times:'1' })
+  return [a,b,c,d].map(n=>('0'.repeat(8)+(n>>>0).toString(16)).slice(-8).match(/../g).map(h=>h[1]+h[0]).join('')).join('')
+}
+
+function buildFeieParams(apiname, extra={}) {
+  const { feie_appid:user, feie_appkey:ukey, feie_sn:sn, feie_key:key } = oaSettings
+  const stime = Math.floor(Date.now()/1000).toString()
+  const sig = md5(user + ukey + stime)
+  return { user, ukey, stime, sig, apiname, sn, key, ...extra }
+}
+
+async function callFeie(params) {
+  // 通过 Vercel Edge Function 中转，解决 CORS 跨域
+  const res = await fetch('/api/print', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(params).toString(),
+  })
+  return res.json()
+}
+
+async function testPrint() {
+  const { feie_appid, feie_appkey, feie_sn, feie_key } = oaSettings
+  if (!feie_appid || !feie_appkey || !feie_sn || !feie_key) {
+    showToast('请先填写并保存全部飞鹅配置', 'error'); return
+  }
+  showToast('发送测试打印…', 'info')
   try {
-    const res = await fetch('https://api.feieyun.cn/Api/Open/', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params.toString() })
-    const data = await res.json()
-    if (data.ret === 0) showToast('✓ 打印任务已发送！', 'success', 4000)
-    else showToast(`打印失败：${data.msg}`, 'error', 5000)
-  } catch { showToast('飞鹅API调用失败（CORS），可能需要服务端代理', 'error', 5000) }
+    const content = `<CB>莱珂珍妮 OA</CB>
+测试打印成功！
+${new Date().toLocaleString('zh-CN')}
+<L>--------------------------------</L>
+<C>系统连接正常</C>`
+    const data = await callFeie(buildFeieParams('Open_printMsg', { content, times:'1' }))
+    if (data.ret === 0) showToast('✓ 测试打印已发送！', 'success', 4000)
+    else showToast(`打印失败：${data.msg || JSON.stringify(data)}`, 'error', 6000)
+  } catch(err) { showToast('请求失败：' + err.message, 'error') }
+}
+
+async function printFeieyun() {
+  const { feie_appid, feie_sn } = oaSettings
+  if (!feie_appid || !feie_sn) {
+    showToast(isAdmin ? '请先在设置页配置飞鹅打印机' : '请联系管理员配置打印机', 'error'); return
+  }
+  showToast('发送打印任务…', 'info')
+  try {
+    const content = buildPrintContent()
+    const data = await callFeie(buildFeieParams('Open_printMsg', { content, times:'1' }))
+    if (data.ret === 0) showToast('✓ 备料单已发送到打印机！', 'success', 4000)
+    else showToast(`打印失败：${data.msg || JSON.stringify(data)}`, 'error', 6000)
+  } catch(err) { showToast('请求失败：' + err.message, 'error') }
 }
 
 function buildPrintContent() {
-  const meta = document.getElementById('prep-meta')?.textContent || ''
-  const summary = document.getElementById('order-summary')?.textContent || ''
-  let c = `<CB>莱珂珍妮备料单</CB>\n<C>${meta}</C>\n<L>---</L>\n${summary}\n<L>---</L>\n`
+  const now = new Date()
+  let c = `<CB>莱珂珍妮备料单</CB>
+`
+  c += `<C>${now.toLocaleDateString('zh-CN')}  ${now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})}</C>
+`
+  c += `<L>--------------------------------</L>
+`
+  c += `<B>本单产品：</B>
+`
+  document.querySelectorAll('#order-summary b').forEach(el => {
+    c += `  ${el.parentElement?.textContent?.trim()}
+`
+  })
+  c += `<L>--------------------------------</L>
+`
   document.querySelectorAll('#prep-table .prep-section').forEach(sec => {
-    c += `\n<B>${sec.querySelector('.prep-category')?.textContent||''}</B>\n`
+    const cat = sec.querySelector('.prep-category')?.textContent || ''
+    c += `
+<B>【${cat}】</B>
+`
     sec.querySelectorAll('.prep-item').forEach(item => {
-      const name = item.querySelector('.prep-name')?.textContent||''
-      const qty = item.querySelector('.prep-qty')?.textContent||''
-      const unit = item.querySelector('.prep-unit')?.textContent||''
-      c += `${name}<RIGHT>${qty}${unit}</RIGHT>\n`
+      const name = item.querySelector('.prep-name')?.textContent || ''
+      const qty  = item.querySelector('.prep-qty')?.textContent || ''
+      const unit = item.querySelector('.prep-unit')?.textContent?.trim() || ''
+      c += `${name}<RIGHT>${qty}${unit}</RIGHT>
+`
     })
   })
-  c += `\n<L>---</L>\n<C>莱珂珍妮 · ${new Date().toLocaleDateString('zh-CN')}</C>\n`
+  c += `
+<L>--------------------------------</L>
+`
+  c += `<C>莱珂珍妮  ${now.toLocaleDateString('zh-CN')}</C>
+`
   return c
 }
 
