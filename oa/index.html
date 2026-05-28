@@ -331,6 +331,7 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
     <button class="nav-btn" onclick="switchPage('nutrition',this)">📊 营养热量</button>
     <button class="nav-btn" onclick="switchPage('history',this)">📁 历史记录</button>
     <!-- 管理员专属，默认隐藏 -->
+    <button class="nav-btn" id="nav-products-mgmt" style="display:none" onclick="switchPage('products-mgmt',this)">➕ 产品管理</button>
     <button class="nav-btn" id="nav-users" style="display:none" onclick="switchPage('users',this)">👥 员工管理</button>
     <button class="nav-btn" id="nav-settings" style="display:none" onclick="switchPage('settings',this)">⚙️ 设置</button>
   </div>
@@ -465,6 +466,104 @@ body{background:var(--white);color:var(--black);font-family:'Noto Sans SC','Spac
       <div class="box">
         <div class="box-header">历史备料记录</div>
         <div id="history-list"><div style="padding:32px;text-align:center;color:#999;font-size:13px">暂无历史记录</div></div>
+      </div>
+    </div>
+
+    <!-- ── 产品管理（管理员专用） ── -->
+    <div class="page" id="page-products-mgmt">
+      <div class="page-eyebrow">Admin · 管理员专属</div>
+      <div class="page-title">产品管理</div>
+
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+        <button class="btn btn-green" onclick="showProductForm()">＋ 新增产品</button>
+        <button class="btn btn-ghost btn-sm" onclick="loadProductsMgmt()">刷新列表</button>
+      </div>
+
+      <!-- 新增/编辑表单 -->
+      <div id="product-form-box" style="display:none" class="box">
+        <div class="box-header green" id="product-form-title">新增产品</div>
+        <div class="box-body">
+          <input type="hidden" id="pf-id">
+          <div class="settings-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+            <div>
+              <label class="label">产品名称 *</label>
+              <input class="input" id="pf-name" placeholder="如：经典鸡排">
+            </div>
+            <div>
+              <label class="label">系列 *</label>
+              <select class="input" id="pf-category">
+                <option>咸鲜</option><option>甜品</option><option>水果</option><option>特色</option>
+              </select>
+            </div>
+            <div>
+              <label class="label">吐司类型</label>
+              <input class="input" id="pf-bread" placeholder="如：南瓜吐司×3片">
+            </div>
+            <div>
+              <label class="label">热量 kcal</label>
+              <input class="input" id="pf-kcal" type="number" placeholder="如：486">
+            </div>
+            <div>
+              <label class="label">蛋白质 g</label>
+              <input class="input" id="pf-protein" type="number" step="0.1" placeholder="如：32">
+            </div>
+            <div>
+              <label class="label">脂肪 g</label>
+              <input class="input" id="pf-fat" type="number" step="0.1" placeholder="如：20">
+            </div>
+            <div>
+              <label class="label">碳水 g</label>
+              <input class="input" id="pf-carb" type="number" step="0.1" placeholder="如：42">
+            </div>
+            <div>
+              <label class="label">膳食纤维 g</label>
+              <input class="input" id="pf-fiber" type="number" step="0.1" placeholder="如：3.5">
+            </div>
+          </div>
+
+          <div style="margin-bottom:16px">
+            <label class="label">外卖平台别名（用于备货单识别匹配）</label>
+            <input class="input" id="pf-aliases" placeholder="多个别名用逗号分隔，如：凤梨鸡排三明治,菠萝鸡排">
+          </div>
+
+          <!-- 配料表 -->
+          <div style="margin-bottom:16px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <label class="label" style="margin:0">配料表</label>
+              <button class="btn btn-ghost btn-sm" onclick="addIngredientRow()">＋ 添加食材</button>
+            </div>
+            <div id="ingredients-editor">
+              <div style="display:grid;grid-template-columns:3fr 1.5fr 1.5fr 2fr auto;gap:6px;margin-bottom:4px">
+                <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--gray2)">食材名称</div>
+                <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--gray2)">用量</div>
+                <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--gray2)">单位</div>
+                <div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--gray2)">分类</div>
+                <div></div>
+              </div>
+              <div id="ingredient-rows"></div>
+            </div>
+          </div>
+
+          <!-- 制作步骤 -->
+          <div style="margin-bottom:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <label class="label" style="margin:0">制作步骤</label>
+              <button class="btn btn-ghost btn-sm" onclick="addStepRow()">＋ 添加步骤</button>
+            </div>
+            <div id="step-rows"></div>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-black" onclick="saveProduct()">保存产品</button>
+            <button class="btn btn-ghost" onclick="hideProductForm()">取消</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 产品列表 -->
+      <div class="box">
+        <div class="box-header">全部产品</div>
+        <div id="products-mgmt-list"><div style="padding:16px;color:#666;font-size:13px">加载中…</div></div>
       </div>
     </div>
 
@@ -642,6 +741,7 @@ async function initUserSession(user) {
   document.getElementById('topbar-role').textContent = isAdmin ? 'ADMIN' : 'STAFF'
   if (isAdmin) {
     document.getElementById('topbar-role').className = 'badge badge-admin'
+    document.getElementById('nav-products-mgmt').style.display = 'flex'
     document.getElementById('nav-users').style.display = 'flex'
     document.getElementById('nav-settings').style.display = 'flex'
     await loadSettings()
@@ -783,6 +883,7 @@ function switchPage(name, btn) {
   if (btn) btn.classList.add('active')
   if (name === 'history') renderHistory()
   if (name === 'users') loadPendingUsers()
+  if (name === 'products-mgmt') loadProductsMgmt()
 }
 
 function showToast(msg, type='info', duration=3000) {
@@ -882,33 +983,9 @@ function parseOcrText(text) {
 
   // 调试行已移除
 
-  // 别名映射：外卖平台名称关键词 → 系统产品ID
-  const ALIAS_MAP = [
-    { keywords: ['低脂土豆泥烟熏鸡','土豆泥烟熏鸡','烟熏鸡三明治','低脂土豆'], id: 'tudouyuxunji' },
-    { keywords: ['贝贝南瓜双鸡排','贝由南瓜','南瓜双鸡排','双鸡排'], id: 'jingdianpai' },
-    { keywords: ['芝士土豆泥烤肠','火鸡面三明治','烤肠火鸡'], id: 'tudouyuxunji' },
-    { keywords: ['凤梨鸡排','菠萝鸡排'], id: 'jingdianpai' },
-    { keywords: ['土豆泥碗','巨掉称','巨掉'], id: 'tudouyuxunji' },
-    { keywords: ['蟹柳滑蛋','蟹柳'], id: 'xiebliudan' },
-    { keywords: ['经典鸡排'], id: 'jingdianpai' },
-    { keywords: ['安格斯牛肉','安格斯'], id: 'angesiniu' },
-    { keywords: ['芋泥鸡排'], id: 'yunijipai' },
-    { keywords: ['低脂鸡丝','鸡丝贡菜'], id: 'dizhijisi' },
-    { keywords: ['日式厚切猪扒','厚切猪扒','猪扒'], id: 'rishi_zhu' },
-    { keywords: ['奶酪芋泥血糯米','芋泥血糯米'], id: 'nalao_yuni' },
-    { keywords: ['奶冻抹茶','抹茶血糯米'], id: 'naidong_mocha' },
-    { keywords: ['蓝莓啵啵'], id: 'lannmei_boba' },
-    { keywords: ['麻薯草莓','草莓麻薯'], id: 'mochi_strawberry' },
-    { keywords: ['茉莉青提','青提奶酪'], id: 'moligingtip' },
-    { keywords: ['芒果芋泥','芒果血糯米'], id: 'mango_yuni' },
-    { keywords: ['泰式芒果','椰椰'], id: 'thai_mango' },
-    { keywords: ['蓝莓甜橘','甜橘奶酪'], id: 'blueberry_tangerine' },
-    { keywords: ['杨枝甘露'], id: 'yangzhi_ganluo' },
-    { keywords: ['五谷丰登'], id: 'wugu_fengdeng' },
-  ]
+  // 从产品列表动态构建别名映射（产品管理后台维护）
+  const ALIAS_MAP = buildAliasMap()
 
-  function matchByAlias(name) {
-    // 去掉空格和噪音字符后匹配
     const n = name.replace(/\s+/g, '').replace(/三明治|默认|备注/g, '')
     for (const alias of ALIAS_MAP) {
       for (const kw of alias.keywords) {
@@ -998,7 +1075,247 @@ function resetOcr() {
 }
 
 // ══════════════════════════════════════════════
-// 飞鹅打印（MD5签名 + Edge Function中转）
+// 产品管理（管理员专用）
+// ══════════════════════════════════════════════
+
+const UNITS = ['g', '片', '颗', '个', '份', '适量份', '段', '块', '根', 'ml']
+const ING_CATS = ['面包类', '蛋白质/肉类', '蛋类', '蔬菜类', '水果类', '奶制品', '米面/淀粉类', '酱料/调味', '其他食材']
+
+async function loadProductsMgmt() {
+  const { data: products, error } = await sb
+    .from('oa_products')
+    .select('id, name, category, kcal, bread_type, is_active, aliases')
+    .order('sort_order')
+  if (error) { showToast('加载失败：' + error.message, 'error'); return }
+
+  const el = document.getElementById('products-mgmt-list')
+  if (!products?.length) { el.innerHTML = '<div style="padding:16px;color:#666;font-size:13px">暂无产品，点击「新增产品」添加</div>'; return }
+
+  el.innerHTML = products.map(p => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--gray);${!p.is_active ? 'opacity:0.5' : ''}">
+      <div>
+        <div style="font-weight:700;font-size:13px">${p.name}
+          ${!p.is_active ? '<span class="badge" style="background:#eee;color:#999;margin-left:6px">已停用</span>' : ''}
+        </div>
+        <div style="font-size:11px;color:#888;margin-top:2px">
+          <span style="${getCatStyle(p.category)};font-size:9px;font-weight:700;padding:1px 5px">${p.category}</span>
+          <span style="margin-left:8px">${p.kcal || '—'} kcal · ${p.bread_type || '—'}</span>
+        </div>
+        ${p.aliases?.length ? `<div style="font-size:10px;color:#aaa;margin-top:2px">别名：${p.aliases.join('、')}</div>` : ''}
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn btn-ghost btn-sm" onclick="editProduct('${p.id}')">编辑</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleProduct('${p.id}', ${p.is_active})">${p.is_active ? '停用' : '启用'}</button>
+      </div>
+    </div>`).join('')
+}
+
+function getCatStyle(cat) {
+  const map = { '咸鲜':'background:#FFF3EC;color:#E8834A', '甜品':'background:#F5F0FF;color:#7B5EA7', '水果':'background:#EFF6FF;color:#4A7FA5', '特色':'background:#FFF0F0;color:#C94040' }
+  return map[cat] || 'background:#eee;color:#666'
+}
+
+function showProductForm(product = null) {
+  document.getElementById('product-form-box').style.display = 'block'
+  document.getElementById('product-form-title').textContent = product ? '编辑产品' : '新增产品'
+  document.getElementById('pf-id').value = product?.id || ''
+  document.getElementById('pf-name').value = product?.name || ''
+  document.getElementById('pf-category').value = product?.category || '咸鲜'
+  document.getElementById('pf-bread').value = product?.bread_type || ''
+  document.getElementById('pf-kcal').value = product?.kcal || ''
+  document.getElementById('pf-protein').value = product?.protein || ''
+  document.getElementById('pf-fat').value = product?.fat || ''
+  document.getElementById('pf-carb').value = product?.carb || ''
+  document.getElementById('pf-fiber').value = product?.fiber || ''
+  document.getElementById('pf-aliases').value = product?.aliases?.join(',') || ''
+  document.getElementById('ingredient-rows').innerHTML = ''
+  document.getElementById('step-rows').innerHTML = ''
+  document.getElementById('product-form-box').scrollIntoView({ behavior: 'smooth' })
+}
+
+function hideProductForm() {
+  document.getElementById('product-form-box').style.display = 'none'
+  document.getElementById('pf-id').value = ''
+}
+
+function addIngredientRow(ing = null) {
+  const row = document.createElement('div')
+  row.style.cssText = 'display:grid;grid-template-columns:3fr 1.5fr 1.5fr 2fr auto;gap:6px;margin-bottom:6px'
+  row.innerHTML = `
+    <input class="input input-sm" placeholder="食材名称" value="${ing?.name || ''}">
+    <input class="input input-sm" type="number" placeholder="用量" value="${ing?.amount || ''}" step="0.1">
+    <select class="input input-sm">
+      ${UNITS.map(u => `<option ${ing?.unit === u ? 'selected' : ''}>${u}</option>`).join('')}
+    </select>
+    <select class="input input-sm">
+      ${ING_CATS.map(c => `<option ${ing?.category === c ? 'selected' : ''}>${c}</option>`).join('')}
+    </select>
+    <button class="btn btn-ghost btn-sm" style="padding:6px 10px" onclick="this.parentElement.remove()">✕</button>`
+  document.getElementById('ingredient-rows').appendChild(row)
+}
+
+function addStepRow(step = null) {
+  const idx = document.getElementById('step-rows').children.length + 1
+  const row = document.createElement('div')
+  row.style.cssText = 'border:2px solid var(--black);margin-bottom:8px;background:var(--white)'
+  row.innerHTML = `
+    <div style="background:var(--black);padding:6px 12px;display:flex;align-items:center;justify-content:space-between">
+      <span style="color:var(--yellow);font-size:11px;font-weight:700">步骤 ${idx}</span>
+      <button style="background:transparent;border:none;color:#666;cursor:pointer;font-size:14px" onclick="this.closest('div').parentElement.remove();reorderSteps()">✕</button>
+    </div>
+    <div style="padding:10px;display:flex;flex-direction:column;gap:6px">
+      <input class="input input-sm" placeholder="步骤标题（如：备料、制作滑蛋、组装）" value="${step?.title || ''}">
+      <textarea class="input" rows="2" placeholder="步骤详细说明" style="resize:none">${step?.content || ''}</textarea>
+    </div>`
+  document.getElementById('step-rows').appendChild(row)
+}
+
+function reorderSteps() {
+  document.querySelectorAll('#step-rows > div').forEach((row, i) => {
+    const label = row.querySelector('span')
+    if (label) label.textContent = `步骤 ${i + 1}`
+  })
+}
+
+async function editProduct(id) {
+  const { data: product } = await sb.from('oa_products').select('*').eq('id', id).single()
+  const { data: ingredients } = await sb.from('oa_ingredients').select('*').eq('product_id', id).order('sort_order')
+  const { data: steps } = await sb.from('oa_steps').select('*').eq('product_id', id).order('step_order')
+  showProductForm(product)
+  ingredients?.forEach(ing => addIngredientRow(ing))
+  steps?.forEach(step => addStepRow(step))
+}
+
+async function saveProduct() {
+  const id = document.getElementById('pf-id').value
+  const name = document.getElementById('pf-name').value.trim()
+  if (!name) { showToast('请填写产品名称', 'error'); return }
+
+  const aliasRaw = document.getElementById('pf-aliases').value.trim()
+  const aliases = aliasRaw ? aliasRaw.split(/[,，]/).map(s => s.trim()).filter(Boolean) : []
+
+  const productData = {
+    name,
+    category:   document.getElementById('pf-category').value,
+    bread_type: document.getElementById('pf-bread').value.trim() || null,
+    kcal:       parseInt(document.getElementById('pf-kcal').value) || null,
+    protein:    parseFloat(document.getElementById('pf-protein').value) || null,
+    fat:        parseFloat(document.getElementById('pf-fat').value) || null,
+    carb:       parseFloat(document.getElementById('pf-carb').value) || null,
+    fiber:      parseFloat(document.getElementById('pf-fiber').value) || null,
+    aliases,
+    updated_at: new Date().toISOString(),
+  }
+
+  let productId = id
+  if (id) {
+    const { error } = await sb.from('oa_products').update(productData).eq('id', id)
+    if (error) { showToast('保存失败：' + error.message, 'error'); return }
+  } else {
+    const { data, error } = await sb.from('oa_products').insert(productData).select().single()
+    if (error) { showToast('保存失败：' + error.message, 'error'); return }
+    productId = data.id
+  }
+
+  // 保存配料（先删后插）
+  await sb.from('oa_ingredients').delete().eq('product_id', productId)
+  const ingRows = document.querySelectorAll('#ingredient-rows > div')
+  if (ingRows.length) {
+    const ings = [...ingRows].map((row, i) => {
+      const inputs = row.querySelectorAll('input, select')
+      return {
+        product_id: productId,
+        name:       inputs[0].value.trim(),
+        amount:     parseFloat(inputs[1].value) || 0,
+        unit:       inputs[2].value,
+        category:   inputs[3].value,
+        sort_order: i,
+      }
+    }).filter(ing => ing.name)
+    if (ings.length) await sb.from('oa_ingredients').insert(ings)
+  }
+
+  // 保存步骤（先删后插）
+  await sb.from('oa_steps').delete().eq('product_id', productId)
+  const stepRows = document.querySelectorAll('#step-rows > div')
+  if (stepRows.length) {
+    const steps = [...stepRows].map((row, i) => {
+      const inputs = row.querySelectorAll('input, textarea')
+      return {
+        product_id: productId,
+        step_order: i,
+        title:      inputs[0].value.trim(),
+        content:    inputs[1].value.trim(),
+      }
+    }).filter(s => s.title)
+    if (steps.length) await sb.from('oa_steps').insert(steps)
+  }
+
+  showToast(id ? '产品已更新' : '产品已添加', 'success')
+  hideProductForm()
+  loadProductsMgmt()
+  // 同步刷新前端产品数组
+  await reloadProductsFromDB()
+}
+
+async function toggleProduct(id, isActive) {
+  const { error } = await sb.from('oa_products').update({ is_active: !isActive }).eq('id', id)
+  if (error) { showToast('操作失败', 'error'); return }
+  showToast(isActive ? '产品已停用' : '产品已启用', 'success')
+  loadProductsMgmt()
+  await reloadProductsFromDB()
+}
+
+// ── 从数据库加载产品列表（替换硬编码PRODUCTS数组）──
+async function reloadProductsFromDB() {
+  const { data: products } = await sb
+    .from('oa_products')
+    .select(`*, oa_ingredients(*), oa_steps(*)`)
+    .eq('is_active', true)
+    .order('sort_order')
+  if (!products?.length) return
+
+  // 重建 PRODUCTS 数组
+  PRODUCTS.length = 0
+  products.forEach(p => {
+    const ingredients = (p.oa_ingredients || [])
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map(i => [i.name, i.amount, i.unit, i.category])
+    const steps = (p.oa_steps || [])
+      .sort((a, b) => a.step_order - b.step_order)
+      .map(s => ({ title: s.title, content: s.content }))
+    PRODUCTS.push({
+      id:    p.id,
+      name:  p.name,
+      cat:   p.category,
+      kcal:  p.kcal || 0,
+      bread: p.bread_type || '',
+      ingredients,
+      steps,
+      aliases: p.aliases || [],
+    })
+  })
+
+  // 刷新各页面
+  renderOrderList()
+  renderProducts()
+  renderRecipes()
+  renderNutrition()
+}
+
+// ── 重建 OCR 别名匹配（从DB产品的aliases字段）──
+function buildAliasMap() {
+  const map = []
+  PRODUCTS.forEach(p => {
+    if (p.aliases?.length) {
+      map.push({ keywords: [p.name, ...p.aliases], id: p.id })
+    } else {
+      map.push({ keywords: [p.name], id: p.id })
+    }
+  })
+  return map
+}
+
 // ══════════════════════════════════════════════
 
 // 纯JS MD5 实现（飞鹅签名要求MD5，不能用SHA-256）
@@ -1210,7 +1527,11 @@ const CAT_COLORS = {
 
 // ── 初始化渲染 ──
 function initApp() {
-  renderOrderList(); renderProducts(); renderRecipes(); renderNutrition()
+  renderOrderList()
+  renderProducts()
+  renderRecipes()
+  renderNutrition()
+  reloadProductsFromDB()
 }
 
 // ── 订单录入 ──
