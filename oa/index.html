@@ -1412,38 +1412,55 @@ async function printFeieyun() {
 
 function buildPrintContent() {
   const now = new Date()
-  let c = `<CB>莱珂珍妮备料单</CB>
-`
-  c += `<C>${now.toLocaleDateString('zh-CN')}  ${now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})}</C>
-`
-  c += `<L>--------------------------------</L>
-`
-  c += `<B>本单产品：</B>
-`
+  const dateStr = now.toLocaleDateString('zh-CN')
+  const timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+
+  // 左右对齐，总宽约26个中文字符宽度
+  function padLine(left, right) {
+    const lLen = [...left].length
+    const rLen = [...right].length
+    const spaces = Math.max(1, 24 - lLen - rLen)
+    return left + ' '.repeat(spaces) + right
+  }
+
+  let c = ''
+  c += '<CB>莱珂珍妮备料单</CB><BR>'
+  c += '<C>' + dateStr + '  ' + timeStr + '</C><BR>'
+  c += '================================<BR>'
+
+  // 本单产品
+  c += '<B>本单产品</B><BR>'
+  c += '--------------------------------<BR>'
   document.querySelectorAll('#order-summary b').forEach(el => {
-    c += `  ${el.parentElement?.textContent?.trim()}
-`
+    const text = el.parentElement?.textContent?.trim() || ''
+    const match = text.match(/^(.+?)\s*×\s*(\d+)$/)
+    if (match) {
+      c += padLine(match[1].trim(), 'x' + match[2]) + '<BR>'
+    } else {
+      c += text + '<BR>'
+    }
   })
-  c += `<L>--------------------------------</L>
-`
+
+  c += '================================<BR>'
+  c += '<B>备料清单</B><BR>'
+  c += '--------------------------------<BR>'
+
+  // 按分类输出备料
   document.querySelectorAll('#prep-table .prep-section').forEach(sec => {
-    const cat = sec.querySelector('.prep-category')?.textContent || ''
-    c += `
-<B>【${cat}】</B>
-`
+    const cat = sec.querySelector('.prep-category')?.textContent?.trim() || ''
+    c += '<B>- ' + cat + ' -</B><BR>'
     sec.querySelectorAll('.prep-item').forEach(item => {
-      const name = item.querySelector('.prep-name')?.textContent || ''
-      const qty  = item.querySelector('.prep-qty')?.textContent || ''
+      const name = item.querySelector('.prep-name')?.textContent?.trim() || ''
+      const qty  = item.querySelector('.prep-qty')?.textContent?.trim() || ''
       const unit = item.querySelector('.prep-unit')?.textContent?.trim() || ''
-      c += `${name}<RIGHT>${qty}${unit}</RIGHT>
-`
+      c += padLine(name, qty + unit) + '<BR>'
     })
   })
-  c += `
-<L>--------------------------------</L>
-`
-  c += `<C>莱珂珍妮  ${now.toLocaleDateString('zh-CN')}</C>
-`
+
+  c += '================================<BR>'
+  c += '<C>莱珂珍妮</C><BR>'
+  c += '<C>' + dateStr + '</C><BR>'
+  c += '<CUT>'
   return c
 }
 
