@@ -1268,39 +1268,55 @@ async function toggleProduct(id, isActive) {
 
 // ── 从数据库加载产品列表（替换硬编码PRODUCTS数组）──
 async function reloadProductsFromDB() {
-  const { data: products } = await sb
-    .from('oa_products')
-    .select(`*, oa_ingredients(*), oa_steps(*)`)
-    .eq('is_active', true)
-    .order('sort_order')
-  if (!products?.length) return
+  try {
+    const { data: products, error } = await sb
+      .from('oa_products')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order')
+    if (error || !products?.length) return
 
-  // 重建 PRODUCTS 数组
-  PRODUCTS.length = 0
-  products.forEach(p => {
-    const ingredients = (p.oa_ingredients || [])
-      .sort((a, b) => a.sort_order - b.sort_order)
-      .map(i => [i.name, i.amount, i.unit, i.category])
-    const steps = (p.oa_steps || [])
-      .sort((a, b) => a.step_order - b.step_order)
-      .map(s => ({ title: s.title, content: s.content }))
-    PRODUCTS.push({
-      id:    p.id,
-      name:  p.name,
-      cat:   p.category,
-      kcal:  p.kcal || 0,
-      bread: p.bread_type || '',
-      ingredients,
-      steps,
-      aliases: p.aliases || [],
+    // 分别查配料和步骤
+    const productIds = products.map(p => p.id)
+    const { data: allIngredients } = await sb
+      .from('oa_ingredients')
+      .select('*')
+      .in('product_id', productIds)
+      .order('sort_order')
+    const { data: allSteps } = await sb
+      .from('oa_steps')
+      .select('*')
+      .in('product_id', productIds)
+      .order('step_order')
+
+    // 重建 PRODUCTS 数组
+    PRODUCTS.length = 0
+    products.forEach(p => {
+      const ingredients = (allIngredients || [])
+        .filter(i => i.product_id === p.id)
+        .map(i => [i.name, i.amount, i.unit, i.category])
+      const steps = (allSteps || [])
+        .filter(s => s.product_id === p.id)
+        .map(s => ({ title: s.title, content: s.content }))
+      PRODUCTS.push({
+        id:          p.id,
+        name:        p.name,
+        cat:         p.category,
+        kcal:        p.kcal || 0,
+        bread:       p.bread_type || '',
+        ingredients,
+        steps,
+        aliases:     p.aliases || [],
+      })
     })
-  })
 
-  // 刷新各页面
-  renderOrderList()
-  renderProducts()
-  renderRecipes()
-  renderNutrition()
+    renderOrderList()
+    renderProducts()
+    renderRecipes()
+    renderNutrition()
+  } catch (err) {
+    console.error('reloadProductsFromDB error:', err)
+  }
 }
 
 // ── 重建 OCR 别名匹配（从DB产品的aliases字段）──
