@@ -986,6 +986,7 @@ function parseOcrText(text) {
   // 从产品列表动态构建别名映射（产品管理后台维护）
   const ALIAS_MAP = buildAliasMap()
 
+  function matchByAlias(name) {
     const n = name.replace(/\s+/g, '').replace(/三明治|默认|备注/g, '')
     for (const alias of ALIAS_MAP) {
       for (const kw of alias.keywords) {
