@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>莱珂珍妮 OA · 内部系统</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/blueimp-md5@2.19.0/js/md5.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+SC:wght@400;500;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -1340,8 +1339,33 @@ function buildAliasMap() {
 function buildFeieParams(apiname, extra={}) {
   const { feie_appid:user, feie_appkey:ukey, feie_sn:sn, feie_key:key } = oaSettings
   const stime = Math.floor(Date.now()/1000).toString()
-  const sig = md5(user + ukey + stime)
+  // 飞鹅签名：SHA1(user + ukey + stime)
+  const sig = sha1(user + ukey + stime)
   return { user, ukey, stime, sig, apiname, sn, key, ...extra }
+}
+
+// SHA1 实现
+function sha1(str) {
+  function rotateLeft(n, s) { return (n << s) | (n >>> (32 - s)) }
+  function toHex(n) { let s = ''; for (let i = 28; i >= 0; i -= 4) s += '0123456789abcdef'.charAt((n >> i) & 0xf); return s }
+  const W = new Array(80)
+  let H0 = 0x67452301, H1 = 0xEFCDAB89, H2 = 0x98BADCFE, H3 = 0x10325476, H4 = 0xC3D2E1F0
+  const bytes = unescape(encodeURIComponent(str))
+  const len = bytes.length
+  const words = []
+  for (let i = 0; i < len; i++) words[i >> 2] |= bytes.charCodeAt(i) << (24 - (i & 3) * 8)
+  words[len >> 2] |= 0x80 << (24 - (len & 3) * 8)
+  words[((len + 8 >> 6) + 1) * 16 - 1] = len * 8
+  for (let i = 0; i < words.length; i += 16) {
+    let a = H0, b = H1, c = H2, d = H3, e = H4
+    for (let j = 0; j < 80; j++) {
+      W[j] = j < 16 ? (words[i + j] || 0) : rotateLeft(W[j-3] ^ W[j-8] ^ W[j-14] ^ W[j-16], 1)
+      const T = (rotateLeft(a, 5) + e + W[j] + (j < 20 ? ((b & c) | (~b & d)) + 0x5A827999 : j < 40 ? (b ^ c ^ d) + 0x6ED9EBA1 : j < 60 ? ((b & c) | (b & d) | (c & d)) + 0x8F1BBCDC : (b ^ c ^ d) + 0xCA62C1D6)) | 0
+      e = d; d = c; c = rotateLeft(b, 30); b = a; a = T
+    }
+    H0 = (H0 + a) | 0; H1 = (H1 + b) | 0; H2 = (H2 + c) | 0; H3 = (H3 + d) | 0; H4 = (H4 + e) | 0
+  }
+  return toHex(H0) + toHex(H1) + toHex(H2) + toHex(H3) + toHex(H4)
 }
 
 async function callFeie(params) {
