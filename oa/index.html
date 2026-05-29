@@ -1415,18 +1415,18 @@ function buildPrintContent() {
   const dateStr = now.toLocaleDateString('zh-CN')
   const timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
 
-  // 左右对齐，总宽约26个中文字符宽度
+  // 左右对齐，58mm纸约16个中文字符宽
   function padLine(left, right) {
     const lLen = [...left].length
     const rLen = [...right].length
-    const spaces = Math.max(1, 24 - lLen - rLen)
+    const spaces = Math.max(1, 16 - lLen - rLen)
     return left + ' '.repeat(spaces) + right
   }
 
   let c = ''
-  c += '<CB>莱珂珍妮备料单</CB><BR>'
-  c += '<C>' + dateStr + '  ' + timeStr + '</C><BR>'
-  c += '================================<BR>'
+  c += '<CB>备料单</CB><BR>'
+  c += '<C>' + dateStr + ' ' + timeStr + '</C><BR>'
+  c += '================<BR>'
 
   // 本单产品
   c += '<B>本单产品</B><BR>'
@@ -1441,9 +1441,9 @@ function buildPrintContent() {
     }
   })
 
-  c += '================================<BR>'
+  c += '================<BR>'
   c += '<B>备料清单</B><BR>'
-  c += '--------------------------------<BR>'
+  c += '----------------<BR>'
 
   // 按分类输出备料
   document.querySelectorAll('#prep-table .prep-section').forEach(sec => {
@@ -1457,7 +1457,7 @@ function buildPrintContent() {
     })
   })
 
-  c += '================================<BR>'
+  c += '================<BR>'
   c += '<C>莱珂珍妮</C><BR>'
   c += '<C>' + dateStr + '</C><BR>'
   c += '<CUT>'
